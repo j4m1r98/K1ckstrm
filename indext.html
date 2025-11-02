@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kick.com Stream Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #0f0f0f; 
+            color: white; 
+        }
+        .player-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        video { 
+            width: 100%; 
+            background: black; 
+            border-radius: 8px;
+        }
+        .controls { 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #1a1a1a; 
+            border-radius: 8px; 
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .success { background: #1a3c1a; color: #4CAF50; }
+        .error { background: #3c1a1a; color: #f44336; }
+        .loading { background: #1a1a3c; color: #2196F3; }
+        select, button, input { 
+            padding: 8px 12px; 
+            margin: 5px; 
+            background: #333; 
+            color: white; 
+            border: 1px solid #555; 
+            border-radius: 4px; 
+        }
+        button { 
+            background: #6441a5; 
+            cursor: pointer; 
+        }
+        button:hover { background: #7a52c4; }
+        .quality-selector { margin: 10px 0; }
+        .channel-info { margin: 15px 0; padding: 10px; background: #1a1a1a; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <h1>🎥 Kick.com Stream Player</h1>
+        
+        <div class="controls">
+            <input type="text" id="channelInput" placeholder="Nombre del canal" value="Elglogloking">
+            <button onclick="loadStream()">Cargar Stream</button>
+            <button onclick="refreshStream()">🔄 Actualizar</button>
+            <button onclick="autoRefreshToggle()" id="autoRefreshBtn">⏰ Auto-Refresh: OFF</button>
+        </div>
+        
+        <div id="status" class="status">Cargando...</div>
+        
+        <video id="videoPlayer" controls></video>
+        
+        <div id="channelInfo" class="channel-info"></div>
+    </div>
+
+    <script>
+        let hls = null;
+        let autoRefreshInterval = null;
+        let isAutoRefresh = false;
+        const WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
+
+        async function loadStream() {
+            const channelName = document.getElementById('channelInput').value.trim();
+            if (!channelName) {
+                updateStatus('❌ Ingresa un nombre de canal', 'error');
+                return;
+            }
+            
+            try {
+                updateStatus('🔍 Buscando stream...', 'loading');
+                
+                // Usar tu Worker para obtener el stream
+                const streamData = await getStreamFromWorker(channelName);
+                
+                if (!streamData || !streamData.playback_url) {
+                    throw new Error('No se pudo obtener el stream del Worker');
+                }
+                
+                console.log('URL del stream obtenida:', streamData.playback_url);
+                updateStatus('✅ Stream encontrado, cargando video...', 'success');
+                
+                // Usar un proxy CORS público para el stream m3u8
+                const proxiedStreamUrl = await getProxiedStreamUrl(streamData.playback_url);
+                playStream(proxiedStreamUrl);
+                updateChannelInfo(streamData.channel_info);
+                
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        async function getStreamFromWorker(channel) {
+            try {
+                console.log('Consultando Worker para canal:', channel);
+                const response = await fetch(`${WORKER_URL}/?channel=${encodeURIComponent(channel)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error del Worker: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Respuesta completa del Worker:', data);
+                
+                return data;
+                
+            } catch (error) {
+                console.error('Error con el Worker:', error);
+                throw new Error('No se pudo conectar con el servicio de streams');
+            }
+        }
+
+        async function getProxiedStreamUrl(streamUrl) {
+            // Usar un proxy CORS público para evitar bloqueos
+            const proxyUrls = [
+                `https://corsproxy.io/?${encodeURIComponent(streamUrl)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(streamUrl)}`,
+                `https://cors-anywhere.herokuapp.com/${streamUrl}`
+            ];
+            
+            for (const proxyUrl of proxyUrls) {
+                try {
+                    console.log('Probando proxy:', proxyUrl);
+                    const testResponse = await fetch(proxyUrl, { method: 'HEAD' });
+                    if (testResponse.ok) {
+                        console.log('Proxy funcionando:', proxyUrl);
+                        return proxyUrl;
+                    }
+                } catch (error) {
+                    console.log('Proxy falló:', proxyUrl, error);
+                    continue;
+                }
+            }
+            
+            throw new Error('No se pudo encontrar un proxy funcionando');
+        }
+
+        function playStream(url) {
+            const video = document.getElementById('videoPlayer');
+            
+            // Detener HLS anterior
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            
+            console.log('Reproduciendo a través de proxy:', url);
+            
+            // Limpiar fuente anterior
+            video.src = '';
+            video.load();
+            
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    enableWorker: false,
+                    lowLatencyMode: true,
+                    backBufferLength: 90,
+                    xhrSetup: function(xhr) {
+                        // No establecer headers unsafe - el proxy ya maneja CORS
+                        console.log('Cargando segmento...');
+                    }
+                });
+                
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log('✅ Manifiesto HLS cargado correctamente');
+                    video.play().catch(e => {
+                        console.log('Auto-play bloqueado:', e);
+                        updateStatus('⏸️ Click en play para iniciar', 'loading');
+                    });
+                });
+                
+                hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
+                    console.log('📊 Calidad cargada');
+                    updateStatus('▶️ Reproduciendo', 'success');
+                });
+                
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('❌ Error HLS:', data);
+                    
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('🔄 Error de red, intentando recuperar...');
+                                updateStatus('🔁 Error de red, reconectando...', 'error');
+                                setTimeout(() => {
+                                    if (hls) hls.startLoad();
+                                }, 2000);
+                                break;
+                            default:
+                                console.log('💀 Error fatal, recargando stream...');
+                                updateStatus('❌ Error del stream, recargando...', 'error');
+                                setTimeout(loadStream, 3000);
+                                break;
+                        }
+                    }
+                });
+                
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari native HLS support
+                console.log('🔍 Usando HLS nativo de Safari');
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    console.log('✅ Metadata cargada en Safari');
+                    video.play().catch(e => {
+                        console.log('Auto-play bloqueado en Safari:', e);
+                        updateStatus('⏸️ Click en play para iniciar', 'loading');
+                    });
+                });
+            } else {
+                updateStatus('❌ HLS no soportado en este navegador', 'error');
+                return;
+            }
+            
+            // Event listeners para el elemento video
+            video.addEventListener('waiting', () => {
+                updateStatus('⏳ Buffering...', 'loading');
+            });
+            
+            video.addEventListener('playing', () => {
+                updateStatus('▶️ Reproduciendo', 'success');
+            });
+        }
+
+        function refreshStream() {
+            console.log('🔄 Actualización manual del stream');
+            loadStream();
+        }
+
+        function autoRefreshToggle() {
+            const btn = document.getElementById('autoRefreshBtn');
+            
+            if (isAutoRefresh) {
+                clearInterval(autoRefreshInterval);
+                isAutoRefresh = false;
+                btn.textContent = '⏰ Auto-Refresh: OFF';
+                updateStatus('Auto-refresh desactivado', 'success');
+            } else {
+                autoRefreshInterval = setInterval(refreshStream, 20000); // Cada 20 segundos
+                isAutoRefresh = true;
+                btn.textContent = '⏰ Auto-Refresh: ON';
+                updateStatus('Auto-refresh activado (cada 20s)', 'success');
+            }
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        function updateChannelInfo(info) {
+            const container = document.getElementById('channelInfo');
+            if (info && info.name) {
+                container.innerHTML = `
+                    <h3>${info.name}</h3>
+                    ${info.title ? '<p><strong>Título:</strong> ' + info.title + '</p>' : ''}
+                    ${info.thumbnail ? `<img src="${info.thumbnail}" height="60" style="border-radius: 4px; margin-top: 10px;">` : ''}
+                `;
+            } else {
+                container.innerHTML = '<p>Información del canal no disponible</p>';
+            }
+        }
+
+        // Cargar al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando aplicación...');
+            loadStream();
+            
+            document.getElementById('channelInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadStream();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
