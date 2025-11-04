@@ -18,6 +18,7 @@
         .video-container {
             position: relative;
             width: 100%;
+            height: 0;
             padding-top: 56.25%; /* 16:9 Aspect Ratio */
             background: black;
             border-radius: 8px;
@@ -91,13 +92,12 @@
         .channel-main-info {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             width: 100%;
         }
         .channel-profile-container {
             display: flex;
             align-items: center;
-            flex-grow: 1;
+            width: 100%;
         }
         .channel-profile-pic {
             width: 60px;
@@ -106,7 +106,6 @@
             object-fit: cover;
             margin-right: 15px;
             border: 2px solid #6441a5;
-            flex-shrink: 0;
         }
         .profile-placeholder {
             width: 60px;
@@ -120,12 +119,11 @@
             justify-content: center;
             font-size: 36px;
             color: #6441a5;
-            flex-shrink: 0;
         }
         .channel-text-info {
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            width: 100%;
             position: relative;
         }
         .channel-name-line {
@@ -146,7 +144,6 @@
         .channel-viewers {
             display: flex;
             align-items: center;
-            white-space: nowrap;
         }
         .viewers-count {
             margin-left: 8px;
@@ -173,7 +170,6 @@
         .tabs-container { 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 10px; 
             margin-bottom: 15px; 
         }
         .channel-tab { 
@@ -185,11 +181,10 @@
             padding: 10px; 
             width: 120px; 
             text-align: center; 
-            transition: all 0.2s; 
+            margin: 0 10px 10px 0;
         }
         .channel-tab:hover { 
             background: #3a3a3a; 
-            transform: translateY(-2px); 
         }
         .channel-tab.active { 
             border: 2px solid #6441a5; 
@@ -218,7 +213,6 @@
         .channel-name-tab { 
             font-size: 14px; 
             margin-bottom: 8px; 
-            white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis; 
             width: 100%; 
@@ -254,6 +248,7 @@
         }
         .channel-tab-wrapper { 
             position: relative; 
+            margin: 0 10px 10px 0;
         }
         .empty-list { 
             text-align: center; 
@@ -298,17 +293,18 @@
     </div>
 
     <script>
-        let hls = null;
-        let autoRefreshInterval = null;
-        let isAutoRefresh = false;
-        let viewersUpdateInterval = null;
-        let currentChannel = '';
-        const WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
+        // Variables globales
+        var hls = null;
+        var autoRefreshInterval = null;
+        var isAutoRefresh = false;
+        var viewersUpdateInterval = null;
+        var currentChannel = '';
+        var WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
         
         // Lista de canales guardados
-        let savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
+        var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
-        // Función makeRequest idéntica a la de tu otra web
+        // Función makeRequest
         function makeRequest(url) {
             return new Promise(function(resolve, reject) {
                 var xhr = new XMLHttpRequest();
@@ -332,7 +328,7 @@
             });
         }
 
-        // Función getLastLiveText exactamente igual a la de tu otra web
+        // Función getLastLiveText
         function getLastLiveText(username) {
             return makeRequest('https://kick.com/api/v1/channels/' + username)
                 .then(function(data) {
@@ -378,8 +374,8 @@
                 });
         }
 
-        async function loadStream() {
-            const channelName = document.getElementById('channelInput').value.trim();
+        function loadStream() {
+            var channelName = document.getElementById('channelInput').value.trim();
             if (!channelName) {
                 updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
                 return;
@@ -389,8 +385,8 @@
             clearInterval(viewersUpdateInterval);
             
             // Limpiar el video completamente antes de empezar
-            const video = document.getElementById('videoPlayer');
-            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
             video.pause();
             video.src = '';
             video.load();
@@ -402,92 +398,121 @@
             
             currentChannel = channelName;
             
-            try {
-                updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
-                
-                // Usar tu Worker para obtener el stream
-                const streamData = await getStreamFromWorker(channelName);
-                
-                if (!streamData) {
-                    throw new Error('No se pudo obtener información del canal');
-                }
-                
-                // Verificar si el canal está online - SI ESTÁ OFFLINE, SALIR INMEDIATAMENTE
-                if (!streamData.channel_info.is_live) {
-                    await showOfflinePlaceholder(streamData.channel_info);
-                    updateStatus('<i class="fas fa-eye-slash"></i> El canal está offline', 'error');
-                    return; // Este return es crucial
-                }
-                
-                if (!streamData.playback_url) {
-                    throw new Error('No se pudo obtener el stream del Worker');
-                }
-                
-                console.log('URL del stream obtenida:', streamData.playback_url);
-                updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
-                
-                // Usar un proxy CORS público para el stream m3u8
-                const proxiedStreamUrl = await getProxiedStreamUrl(streamData.playback_url);
-                playStream(proxiedStreamUrl);
-                updateChannelInfo(streamData.channel_info);
-                
-                // Iniciar actualización automática del viewers count
-                startViewersUpdate(channelName);
-                
-            } catch (error) {
-                updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
-                console.error('Error:', error);
-            }
+            updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
+            
+            // Usar tu Worker para obtener el stream
+            getStreamFromWorker(channelName)
+                .then(function(streamData) {
+                    if (!streamData) {
+                        throw new Error('No se pudo obtener información del canal');
+                    }
+                    
+                    // Verificar si el canal está online - SI ESTÁ OFFLINE, SALIR INMEDIATAMENTE
+                    if (!streamData.channel_info.is_live) {
+                        return showOfflinePlaceholder(streamData.channel_info)
+                            .then(function() {
+                                updateStatus('<i class="fas fa-eye-slash"></i> El canal está offline', 'error');
+                            });
+                    }
+                    
+                    if (!streamData.playback_url) {
+                        throw new Error('No se pudo obtener el stream del Worker');
+                    }
+                    
+                    console.log('URL del stream obtenida:', streamData.playback_url);
+                    updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
+                    
+                    // Usar un proxy CORS público para el stream m3u8
+                    return getProxiedStreamUrl(streamData.playback_url)
+                        .then(function(proxiedStreamUrl) {
+                            playStream(proxiedStreamUrl);
+                            updateChannelInfo(streamData.channel_info);
+                            
+                            // Iniciar actualización automática del viewers count
+                            startViewersUpdate(channelName);
+                        });
+                })
+                .catch(function(error) {
+                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
+                    console.error('Error:', error);
+                });
         }
 
-        async function getStreamFromWorker(channel) {
-            try {
-                console.log('Consultando Worker para canal:', channel);
-                const response = await fetch(`${WORKER_URL}/?channel=${encodeURIComponent(channel)}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Error del Worker: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Respuesta completa del Worker:', data);
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Error con el Worker:', error);
-                throw new Error('No se pudo conectar con el servicio de streams');
-            }
+        function getStreamFromWorker(channel) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', WORKER_URL + '/?channel=' + encodeURIComponent(channel), true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            resolve(data);
+                        } catch (e) {
+                            reject(new Error('Error parsing JSON from Worker'));
+                        }
+                    } else {
+                        reject(new Error('Error del Worker: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error when connecting to Worker'));
+                };
+                xhr.send();
+            });
         }
 
-        async function getProxiedStreamUrl(streamUrl) {
+        function getProxiedStreamUrl(streamUrl) {
             // Usar un proxy CORS público para evitar bloqueos
-            const proxyUrls = [
-                `https://corsproxy.io/?${encodeURIComponent(streamUrl)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(streamUrl)}`,
-                `https://cors-anywhere.herokuapp.com/${streamUrl}`
+            var proxyUrls = [
+                'https://corsproxy.io/?' + encodeURIComponent(streamUrl),
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(streamUrl),
+                'https://cors-anywhere.herokuapp.com/' + streamUrl
             ];
             
-            for (const proxyUrl of proxyUrls) {
-                try {
-                    console.log('Probando proxy:', proxyUrl);
-                    const testResponse = await fetch(proxyUrl, { method: 'HEAD' });
-                    if (testResponse.ok) {
+            // Probar cada proxy secuencialmente
+            function tryProxy(index) {
+                if (index >= proxyUrls.length) {
+                    return Promise.reject(new Error('No se pudo encontrar un proxy funcionando'));
+                }
+                
+                var proxyUrl = proxyUrls[index];
+                console.log('Probando proxy:', proxyUrl);
+                
+                return testProxyUrl(proxyUrl)
+                    .then(function() {
                         console.log('Proxy funcionando:', proxyUrl);
                         return proxyUrl;
-                    }
-                } catch (error) {
-                    console.log('Proxy falló:', proxyUrl, error);
-                    continue;
-                }
+                    })
+                    .catch(function(error) {
+                        console.log('Proxy falló:', proxyUrl, error);
+                        return tryProxy(index + 1);
+                    });
             }
             
-            throw new Error('No se pudo encontrar un proxy funcionando');
+            return tryProxy(0);
+        }
+
+        function testProxyUrl(proxyUrl) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('HEAD', proxyUrl, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(true);
+                    } else {
+                        reject(new Error('HTTP error: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error'));
+                };
+                xhr.send();
+            });
         }
 
         function playStream(url) {
-            const video = document.getElementById('videoPlayer');
-            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
             
             // Mostrar video y ocultar placeholder
             video.style.display = 'block';
@@ -505,47 +530,43 @@
             video.src = '';
             video.load();
             
-            if (Hls.isSupported()) {
+            if (window.Hls && Hls.isSupported()) {
                 hls = new Hls({
                     enableWorker: false,
                     lowLatencyMode: true,
-                    backBufferLength: 90,
-                    xhrSetup: function(xhr) {
-                        // No establecer headers unsafe - el proxy ya maneja CORS
-                        console.log('Cargando segmento...');
-                    }
+                    backBufferLength: 90
                 });
                 
                 hls.loadSource(url);
                 hls.attachMedia(video);
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('<i class="fas fa-check"></i> Manifiesto HLS cargado correctamente');
-                    video.play().catch(e => {
+                    console.log('Manifiesto HLS cargado correctamente');
+                    video.play().catch(function(e) {
                         console.log('Auto-play bloqueado:', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
                 
                 hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
-                    console.log('<i class="fas fa-chart-bar"></i> Calidad cargada');
+                    console.log('Calidad cargada');
                     updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
                 });
                 
                 hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('<i class="fas fa-exclamation-circle"></i> Error HLS:', data);
+                    console.error('Error HLS:', data);
                     
                     if (data.fatal) {
                         switch(data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log('<i class="fas fa-sync-alt"></i> Error de red, intentando recuperar...');
+                                console.log('Error de red, intentando recuperar...');
                                 updateStatus('<i class="fas fa-redo"></i> Error de red, reconectando...', 'error');
-                                setTimeout(() => {
+                                setTimeout(function() {
                                     if (hls) hls.startLoad();
                                 }, 2000);
                                 break;
                             default:
-                                console.log('<i class="fas fa-skull-crossbones"></i> Error fatal, recargando stream...');
+                                console.log('Error fatal, recargando stream...');
                                 updateStatus('<i class="fas fa-exclamation-circle"></i> Error del stream, recargando...', 'error');
                                 setTimeout(loadStream, 3000);
                                 break;
@@ -555,12 +576,12 @@
                 
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // Safari native HLS support
-                console.log('<i class="fab fa-safari"></i> Usando HLS nativo de Safari');
+                console.log('Usando HLS nativo');
                 video.src = url;
                 video.addEventListener('loadedmetadata', function() {
-                    console.log('<i class="fas fa-check"></i> Metadata cargada en Safari');
-                    video.play().catch(e => {
-                        console.log('Auto-play bloqueado en Safari:', e);
+                    console.log('Metadata cargada');
+                    video.play().catch(function(e) {
+                        console.log('Auto-play bloqueado:', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
@@ -570,19 +591,19 @@
             }
             
             // Event listeners para el elemento video - SOLO cuando el canal está online
-            video.addEventListener('waiting', () => {
+            video.addEventListener('waiting', function() {
                 updateStatus('<i class="fas fa-hourglass-half"></i> Buffering...', 'loading');
             });
             
-            video.addEventListener('playing', () => {
+            video.addEventListener('playing', function() {
                 updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
             });
         }
 
-        async function showOfflinePlaceholder(channelInfo) {
+        function showOfflinePlaceholder(channelInfo) {
             // Detener cualquier reproducción en curso
-            const video = document.getElementById('videoPlayer');
-            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
             
             video.pause();
             video.src = '';
@@ -595,20 +616,21 @@
             // Limpiar intervalos de actualización
             clearInterval(viewersUpdateInterval);
             
-            // Obtener información del último stream usando la misma función de tu otra web
-            const lastLiveText = await getLastLiveText(channelInfo.name);
-            
-            // Actualizar información del canal
-            updateOfflineChannelInfo(channelInfo, lastLiveText);
+            // Obtener información del último stream usando la misma función
+            return getLastLiveText(channelInfo.name)
+                .then(function(lastLiveText) {
+                    // Actualizar información del canal
+                    updateOfflineChannelInfo(channelInfo, lastLiveText);
+                });
         }
 
         function refreshStream() {
-            console.log('<i class="fas fa-sync-alt"></i> Actualización manual del stream');
+            console.log('Actualización manual del stream');
             loadStream();
         }
 
         function autoRefreshToggle() {
-            const btn = document.getElementById('autoRefreshBtn');
+            var btn = document.getElementById('autoRefreshBtn');
             
             if (isAutoRefresh) {
                 clearInterval(autoRefreshInterval);
@@ -624,94 +646,93 @@
         }
 
         function updateStatus(message, type) {
-            const status = document.getElementById('status');
+            var status = document.getElementById('status');
             status.innerHTML = message;
             status.className = 'status ' + type;
         }
 
         function updateChannelInfo(info) {
-            const container = document.getElementById('channelInfo');
+            var container = document.getElementById('channelInfo');
             if (info && info.name) {
-                const profilePic = info.profile_pic ? 
-                    `<img src="${info.profile_pic}" class="channel-profile-pic" alt="${info.name}">` :
-                    `<div class="profile-placeholder"><i class="fas fa-user"></i></div>`;
+                var profilePic = info.profile_pic ? 
+                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
+                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
                 
-                container.innerHTML = `
-                    <div class="channel-main-info">
-                        <div class="channel-profile-container">
-                            ${profilePic}
-                            <div class="channel-text-info">
-                                <div class="channel-name-line">
-                                    <div class="channel-name">${info.name}</div>
-                                    <div class="channel-viewers">
-                                        <i class="fas fa-eye"></i>
-                                        <span class="viewers-count">${info.viewer_count || 0}</span>
-                                    </div>
-                                </div>
-                                <div class="channel-title">${info.title || 'Sin título'}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                container.innerHTML = 
+                    '<div class="channel-main-info">' +
+                        '<div class="channel-profile-container">' +
+                            profilePic +
+                            '<div class="channel-text-info">' +
+                                '<div class="channel-name-line">' +
+                                    '<div class="channel-name">' + info.name + '</div>' +
+                                    '<div class="channel-viewers">' +
+                                        '<i class="fas fa-eye"></i>' +
+                                        '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="channel-title">' + (info.title || 'Sin título') + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
             } else {
                 container.innerHTML = '<p>Información del canal no disponible</p>';
             }
         }
 
         function updateOfflineChannelInfo(info, lastLiveText) {
-            const container = document.getElementById('channelInfo');
+            var container = document.getElementById('channelInfo');
             if (info && info.name) {
-                const profilePic = info.profile_pic ? 
-                    `<img src="${info.profile_pic}" class="channel-profile-pic" alt="${info.name}">` :
-                    `<div class="profile-placeholder"><i class="fas fa-user"></i></div>`;
+                var profilePic = info.profile_pic ? 
+                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
+                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
                 
-                container.innerHTML = `
-                    <div class="channel-main-info">
-                        <div class="channel-profile-container">
-                            ${profilePic}
-                            <div class="channel-text-info">
-                                <div class="channel-name-line">
-                                    <div class="channel-name">${info.name}</div>
+                container.innerHTML = 
+                    '<div class="channel-main-info">' +
+                        '<div class="channel-profile-container">' +
+                            profilePic +
+                            '<div class="channel-text-info">' +
+                                '<div class="channel-name-line">' +
+                                    '<div class="channel-name">' + info.name + '</div>' +
                                     <!-- Viewer count oculto cuando está offline -->
-                                </div>
-                                <div class="offline-time">Última vez en vivo ${lastLiveText}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                                '</div>' +
+                                '<div class="offline-time">Última vez en vivo ' + lastLiveText + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
             } else {
                 container.innerHTML = '<p>Información del canal no disponible</p>';
             }
         }
 
         // Función para actualizar solo el viewers count
-        async function updateViewersCount(channelName) {
-            try {
-                const streamData = await getStreamFromWorker(channelName);
-                if (streamData && streamData.channel_info) {
-                    const viewersCount = streamData.channel_info.viewer_count || 0;
-                    const viewersElement = document.querySelector('.viewers-count');
-                    if (viewersElement) {
-                        viewersElement.textContent = viewersCount;
-                    }
-                    
-                    // Si el canal está offline, detener la actualización
-                    if (!streamData.channel_info.is_live) {
-                        clearInterval(viewersUpdateInterval);
-                        updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
+        function updateViewersCount(channelName) {
+            getStreamFromWorker(channelName)
+                .then(function(streamData) {
+                    if (streamData && streamData.channel_info) {
+                        var viewersCount = streamData.channel_info.viewer_count || 0;
+                        var viewersElement = document.querySelector('.viewers-count');
+                        if (viewersElement) {
+                            viewersElement.textContent = viewersCount;
+                        }
                         
-                        // Limpiar el video
-                        const video = document.getElementById('videoPlayer');
-                        video.pause();
-                        video.src = '';
-                        video.load();
-                        
-                        await showOfflinePlaceholder(streamData.channel_info);
+                        // Si el canal está offline, detener la actualización
+                        if (!streamData.channel_info.is_live) {
+                            clearInterval(viewersUpdateInterval);
+                            updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
+                            
+                            // Limpiar el video
+                            var video = document.getElementById('videoPlayer');
+                            video.pause();
+                            video.src = '';
+                            video.load();
+                            
+                            return showOfflinePlaceholder(streamData.channel_info);
+                        }
                     }
-                }
-            } catch (error) {
-                console.error('Error actualizando viewers count:', error);
-            }
+                })
+                .catch(function(error) {
+                    console.error('Error actualizando viewers count:', error);
+                });
         }
 
         // Iniciar la actualización automática del viewers count
@@ -720,7 +741,7 @@
             clearInterval(viewersUpdateInterval);
             
             // Actualizar cada minuto (60000 ms)
-            viewersUpdateInterval = setInterval(() => {
+            viewersUpdateInterval = setInterval(function() {
                 updateViewersCount(channelName);
             }, 60000);
             
@@ -728,44 +749,48 @@
         }
 
         // Función para agregar canal a la lista
-        async function addToList() {
-            const channelName = document.getElementById('channelInput').value.trim();
+        function addToList() {
+            var channelName = document.getElementById('channelInput').value.trim();
             if (!channelName) {
                 updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
                 return;
             }
             
             // Verificar si el canal ya está en la lista
-            if (savedChannels.some(channel => channel.name === channelName)) {
+            var alreadyExists = savedChannels.some(function(channel) {
+                return channel.name === channelName;
+            });
+            
+            if (alreadyExists) {
                 updateStatus('<i class="fas fa-info-circle"></i> Este canal ya está en tu lista', 'loading');
                 return;
             }
             
-            try {
-                updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
-                
-                const streamData = await getStreamFromWorker(channelName);
-                if (!streamData || !streamData.channel_info) {
-                    throw new Error('No se pudo obtener información del canal');
-                }
-                
-                const channelInfo = streamData.channel_info;
-                const newChannel = {
-                    name: channelName,
-                    profile_pic: channelInfo.profile_pic || '',
-                    displayName: channelInfo.name || channelName
-                };
-                
-                savedChannels.push(newChannel);
-                localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
-                renderChannelsList();
-                
-                updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
-                
-            } catch (error) {
-                updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
-                console.error('Error:', error);
-            }
+            updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
+            
+            getStreamFromWorker(channelName)
+                .then(function(streamData) {
+                    if (!streamData || !streamData.channel_info) {
+                        throw new Error('No se pudo obtener información del canal');
+                    }
+                    
+                    var channelInfo = streamData.channel_info;
+                    var newChannel = {
+                        name: channelName,
+                        profile_pic: channelInfo.profile_pic || '',
+                        displayName: channelInfo.name || channelName
+                    };
+                    
+                    savedChannels.push(newChannel);
+                    localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+                    renderChannelsList();
+                    
+                    updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
+                })
+                .catch(function(error) {
+                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
+                    console.error('Error:', error);
+                });
         }
 
         // Función para cargar un canal desde la lista
@@ -776,7 +801,9 @@
 
         // Función para eliminar un canal de la lista
         function removeChannel(channelName) {
-            savedChannels = savedChannels.filter(channel => channel.name !== channelName);
+            savedChannels = savedChannels.filter(function(channel) {
+                return channel.name !== channelName;
+            });
             localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
             renderChannelsList();
             updateStatus('<i class="fas fa-trash-alt"></i> Canal eliminado de la lista', 'success');
@@ -784,41 +811,43 @@
 
         // Función para renderizar la lista de canales
         function renderChannelsList() {
-            const tabsContainer = document.getElementById('tabsContainer');
+            var tabsContainer = document.getElementById('tabsContainer');
             
             if (savedChannels.length === 0) {
                 tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-inbox"></i> No hay canales guardados</div>';
                 return;
             }
             
-            tabsContainer.innerHTML = savedChannels.map(channel => `
-                <div class="channel-tab-wrapper">
-                    <div class="channel-tab">
-                        ${channel.profile_pic ? 
-                            `<img src="${channel.profile_pic}" alt="${channel.displayName}" class="channel-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
-                            ''
-                        }
-                        <div class="${channel.profile_pic ? 'channel-img-placeholder' : 'channel-img-placeholder'}" 
-                             style="${channel.profile_pic ? 'display: none;' : 'display: flex;'}">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="channel-name-tab">${channel.displayName}</div>
-                        <button class="view-btn" onclick="loadChannel('${channel.name}')">
-                            <i class="fas fa-eye"></i> Ver
-                        </button>
-                    </div>
-                    <button class="delete-btn" onclick="removeChannel('${channel.name}')">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
+            var tabsHTML = '';
+            for (var i = 0; i < savedChannels.length; i++) {
+                var channel = savedChannels[i];
+                tabsHTML += 
+                    '<div class="channel-tab-wrapper">' +
+                        '<div class="channel-tab">' +
+                            (channel.profile_pic ? 
+                                '<img src="' + channel.profile_pic + '" alt="' + channel.displayName + '" class="channel-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' : 
+                                '') +
+                            '<div class="channel-img-placeholder" style="' + (channel.profile_pic ? 'display: none;' : 'display: flex;') + '">' +
+                                '<i class="fas fa-user"></i>' +
+                            '</div>' +
+                            '<div class="channel-name-tab">' + channel.displayName + '</div>' +
+                            '<button class="view-btn" onclick="loadChannel(\'' + channel.name + '\')">' +
+                                '<i class="fas fa-eye"></i> Ver' +
+                            '</button>' +
+                        '</div>' +
+                        '<button class="delete-btn" onclick="removeChannel(\'' + channel.name + '\')">' +
+                            '<i class="fas fa-times"></i>' +
+                        '</button>' +
+                    '</div>';
+            }
+            
+            tabsContainer.innerHTML = tabsHTML;
         }
 
         // Cargar al iniciar
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('<i class="fas fa-rocket"></i> Iniciando aplicación...');
+            console.log('Iniciando aplicación...');
             renderChannelsList();
-            loadStream();
             
             document.getElementById('channelInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
