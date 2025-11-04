@@ -540,6 +540,17 @@
         // Lista de canales guardados
         var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
+        // Función para hacer scroll suave al contenedor de video
+        function scrollToVideoContainer() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                videoContainer.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+
         // Función makeRequest
         function makeRequest(url) {
             return new Promise(function(resolve, reject) {
@@ -1136,6 +1147,9 @@
         function loadChannel(channelName) {
             document.getElementById('channelInput').value = channelName;
             loadStream();
+            
+            // Hacer scroll al contenedor de video
+            scrollToVideoContainer();
         }
 
         // Función para eliminar un canal de la lista
@@ -1227,7 +1241,7 @@ function updateChannelsStatus() {
                 
                 var channelTabHTML = 
                     '<div class="channel-tab-wrapper">' +
-                        '<div class="channel-tab" onclick="loadChannel(\'' + channel.name + '\')">' +
+                        '<div class="channel-tab" onclick="loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();">' +
                             (channel.profile_pic ? 
                                 '<img src="' + channel.profile_pic + '" alt="' + channel.displayName + '" class="channel-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' : 
                                 '') +
@@ -1242,7 +1256,7 @@ function updateChannelsStatus() {
                             '</div>' +
                             '<button class="view-btn ' + (status.is_live ? '' : 'offline') + '" onclick="event.stopPropagation(); ' + 
                                 (status.is_live ? 
-                                    'loadChannel(\'' + channel.name + '\')' : 
+                                    'loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();' : 
                                     'window.open(\'https://kick.com/' + channel.name + '\', \'_blank\')') + '">' +
                                 (status.is_live ? 
                                     '<i class="fas fa-play"></i> Ver' : 
