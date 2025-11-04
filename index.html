@@ -45,16 +45,56 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
         }
+
         .offline-icon {
             font-size: 64px;
-            color: #6441a5;
+            color: #ccc;
             margin-bottom: 20px;
         }
-        .offline-text {
+
+        .offline-channel-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            color: white;
+        }
+
+        .offline-status {
             font-size: 18px;
             color: #ccc;
+            margin-bottom: 8px;
         }
+
+        .offline-last-time {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .offline-btn {
+            background: #6441a5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600; 
+            display: flex;
+            align-items: center;   
+        }
+
+        .offline-btn i {
+            margin-right: 8px;
+        }
+        .offline-btn:hover {
+            background: #7a52c4;
+        }
+             
         .controls { 
             margin: 15px 0; 
             padding: 15px; 
@@ -82,7 +122,58 @@
             cursor: pointer; 
         }
         button:hover { background: #7a52c4; }
-        .quality-selector { margin: 10px 0; }
+        .quality-selector { 
+            margin: 10px 0; 
+            position: relative;
+            display: inline-block;
+        }
+        .quality-btn {
+            background: #6441a5;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .quality-btn .fa-cog {
+            margin-right: 8px;
+        }
+        .quality-btn .fa-chevron-down {
+            margin-left: 8px;
+        }
+        .quality-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 120px;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+        .quality-dropdown.show {
+            display: block;
+        }
+        .quality-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: white;
+            border-bottom: 1px solid #555;
+        }
+        .quality-option:last-child {
+            border-bottom: none;
+        }
+        .quality-option:hover {
+            background: #444;
+        }
+        .quality-option.active {
+            background: #6441a5;
+            color: white;
+        }
         .channel-info { 
             margin: 15px 0; 
             padding: 15px; 
@@ -144,10 +235,12 @@
         .channel-viewers {
             display: flex;
             align-items: center;
+            font-size: 14px;
+            color: #aaa;
         }
         .viewers-count {
             margin-left: 8px;
-            font-weight: bold;
+            font-weight: 500;
         }
         .offline-time {
             color: #aaa;
@@ -168,8 +261,9 @@
             margin-bottom: 15px; 
         }
         .tabs-container { 
-            display: flex; 
-            flex-wrap: wrap; 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
             margin-bottom: 15px; 
         }
         .channel-tab { 
@@ -178,10 +272,10 @@
             align-items: center; 
             background: #2a2a2a; 
             border-radius: 8px; 
-            padding: 10px; 
-            width: 120px; 
-            text-align: center; 
-            margin: 0 10px 10px 0;
+            padding: 15px 10px; 
+            width: 100%; 
+            text-align: center;             
+            box-sizing: border-box;
         }
         .channel-tab:hover { 
             background: #3a3a3a; 
@@ -194,14 +288,14 @@
             height: 60px; 
             border-radius: 50%; 
             object-fit: cover; 
-            margin-bottom: 8px; 
+            margin-bottom: 12px; 
             border: 2px solid #6441a5;
         }
         .channel-img-placeholder {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             border: 2px solid #6441a5;
             background: #2a2a2a;
             display: flex;
@@ -212,7 +306,7 @@
         }
         .channel-name-tab { 
             font-size: 14px; 
-            margin-bottom: 8px; 
+            margin-bottom: 12px; 
             overflow: hidden; 
             text-overflow: ellipsis; 
             width: 100%; 
@@ -222,6 +316,7 @@
             border: none; 
             color: white; 
             padding: 5px 10px; 
+            margin: 0;
             border-radius: 4px; 
             cursor: pointer; 
             font-size: 12px; 
@@ -232,8 +327,8 @@
         }
         .delete-btn { 
             position: absolute; 
-            top: 5px; 
-            right: 5px; 
+            top: 2px; 
+            right: 2px; 
             background: rgba(0,0,0,0.7); 
             border: none; 
             color: white; 
@@ -248,12 +343,75 @@
         }
         .channel-tab-wrapper { 
             position: relative; 
-            margin: 0 10px 10px 0;
+            min-width: 0; /* Important para flexbox shrinking en TV */
         }
         .empty-list { 
             text-align: center; 
             padding: 20px; 
             color: #888; 
+        }
+        /* Responsive para tablets */
+        @media (max-width: 768px) {
+            .offline-placeholder {
+                padding: 15px;
+            }
+    
+            .offline-icon {
+                font-size: 36px;
+                margin-bottom: 12px;
+            }
+    
+            .offline-channel-name {
+                font-size: 20px;
+                margin: 0 0 8px 0;
+            }
+    
+            .offline-status {
+                font-size: 16px;
+                margin-bottom: 6px;
+            }
+    
+            .offline-last-time {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+    
+            .offline-btn {
+                padding: 8px 16px;
+                font-size: 16px;
+            }
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 480px) {
+            .offline-placeholder {
+                padding: 15px;
+            }
+    
+            .offline-icon {
+                font-size: 28px;
+                margin-bottom: 8px;
+            }
+    
+            .offline-channel-name {
+                font-size: 16px;
+                margin: 0 0 6px 0;
+            }
+    
+            .offline-status {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+    
+            .offline-last-time {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+    
+            .offline-btn {
+                padding: 8px 12px;
+                font-size: 13px;       
+            }
         }
     </style>
 </head>
@@ -267,6 +425,16 @@
             <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
             <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
             <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
+            
+            <!-- Selector de calidad -->
+            <div class="quality-selector">
+                <button class="quality-btn" id="qualityBtn">
+                    <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="quality-dropdown" id="qualityDropdown">
+                    <!-- Las opciones de calidad se agregarán aquí dinámicamente -->
+                </div>
+            </div>
         </div>
         
         <div id="status" class="status">Cargando...</div>
@@ -274,8 +442,7 @@
         <div class="video-container">
             <video id="videoPlayer" controls></video>
             <div id="offlinePlaceholder" class="offline-placeholder" style="display: none;">
-                <i class="fas fa-eye-slash offline-icon"></i>
-                <div class="offline-text">Canal Offline</div>
+                
             </div>
         </div>
         
@@ -300,6 +467,7 @@
         var viewersUpdateInterval = null;
         var currentChannel = '';
         var WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
+        var currentLevels = [];
         
         // Lista de canales guardados
         var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
@@ -411,7 +579,7 @@
                     if (!streamData.channel_info.is_live) {
                         return showOfflinePlaceholder(streamData.channel_info)
                             .then(function() {
-                                updateStatus('<i class="fas fa-eye-slash"></i> El canal está offline', 'error');
+                                updateStatus('<i class="fas fa-user-slash"></i> El canal está offline', 'error');
                             });
                     }
                     
@@ -542,6 +710,10 @@
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     console.log('Manifiesto HLS cargado correctamente');
+                    
+                    // Obtener las calidades disponibles y actualizar el dropdown
+                    updateQualityDropdown();
+                    
                     video.play().catch(function(e) {
                         console.log('Auto-play bloqueado:', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
@@ -600,6 +772,94 @@
             });
         }
 
+        // Función para actualizar el dropdown de calidades
+        function updateQualityDropdown() {
+            if (!hls || !hls.levels || hls.levels.length === 0) {
+                console.log('No hay niveles de calidad disponibles');
+                return;
+            }
+            
+            var qualityDropdown = document.getElementById('qualityDropdown');
+            currentLevels = hls.levels;
+            
+            // Limpiar dropdown
+            qualityDropdown.innerHTML = '';
+            
+            // Agregar opción "Auto"
+            var autoOption = document.createElement('div');
+            autoOption.className = 'quality-option';
+            autoOption.textContent = 'Auto';
+            autoOption.setAttribute('data-level', '-1');
+            if (hls.currentLevel === -1) {
+                autoOption.classList.add('active');
+            }
+            autoOption.onclick = function() {
+                changeQuality(-1);
+            };
+            qualityDropdown.appendChild(autoOption);
+            
+            // Agregar opciones para cada calidad disponible
+            for (var i = 0; i < currentLevels.length; i++) {
+                var level = currentLevels[i];
+                var label = getQualityLabel(level);
+                
+                var option = document.createElement('div');
+                option.className = 'quality-option';
+                option.textContent = label;
+                option.setAttribute('data-level', i.toString());
+                if (hls.currentLevel === i) {
+                    option.classList.add('active');
+                }
+                option.onclick = (function(levelIndex) {
+                    return function() {
+                        changeQuality(levelIndex);
+                    };
+                })(i);
+                
+                qualityDropdown.appendChild(option);
+            }
+        }
+
+        // Función para obtener la etiqueta de calidad
+        function getQualityLabel(level) {
+            if (level.height) {
+                return level.height + 'p';
+            } else if (level.name) {
+                return level.name;
+            } else if (level.bitrate) {
+                return Math.round(level.bitrate / 1000) + ' kbps';
+            } else {
+                return 'Nivel ' + level.id;
+            }
+        }
+
+        // Función para cambiar la calidad
+        function changeQuality(levelIndex) {
+            if (!hls) return;
+            
+            hls.currentLevel = levelIndex;
+            
+            // Actualizar clases activas en el dropdown
+            var options = document.querySelectorAll('.quality-option');
+            for (var i = 0; i < options.length; i++) {
+                options[i].classList.remove('active');
+                if (parseInt(options[i].getAttribute('data-level')) === levelIndex) {
+                    options[i].classList.add('active');
+                }
+            }
+            
+            // Cerrar el dropdown
+            document.getElementById('qualityDropdown').classList.remove('show');
+            
+            console.log('Calidad cambiada a nivel: ' + levelIndex);
+        }
+
+        // Función para mostrar/ocultar el dropdown de calidad
+        function toggleQualityDropdown() {
+            var dropdown = document.getElementById('qualityDropdown');
+            dropdown.classList.toggle('show');
+        }
+
         function showOfflinePlaceholder(channelInfo) {
             // Detener cualquier reproducción en curso
             var video = document.getElementById('videoPlayer');
@@ -621,6 +881,16 @@
                 .then(function(lastLiveText) {
                     // Actualizar información del canal
                     updateOfflineChannelInfo(channelInfo, lastLiveText);
+
+                    // Actualizar el placeholder con toda la información
+            offlinePlaceholder.innerHTML = 
+                '<i class="fas fa-user-slash offline-icon"></i>' +
+                '<div class="offline-channel-name">' + (channelInfo.name || 'Canal') + '</div>' +
+                '<div class="offline-status">Está offline en este momento</div>' +
+                '<div class="offline-last-time">Última vez: ' + lastLiveText + '</div>' +
+                '<button class="offline-btn" onclick="window.open(\'https://kick.com/' + channelInfo.name + '\', \'_blank\')">' +
+                    '<i class="fas fa-external-link-alt"></i> Visitar canal' +
+                '</button>';
                 });
         }
 
@@ -666,7 +936,7 @@
                                 '<div class="channel-name-line">' +
                                     '<div class="channel-name">' + info.name + '</div>' +
                                     '<div class="channel-viewers">' +
-                                        '<i class="fas fa-eye"></i>' +
+                                        '<i class="fas fa-users"></i>' +
                                         '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
                                     '</div>' +
                                 '</div>' +
@@ -693,7 +963,8 @@
                             '<div class="channel-text-info">' +
                                 '<div class="channel-name-line">' +
                                     '<div class="channel-name">' + info.name + '</div>' +
-                                    <!-- Viewer count oculto cuando está offline -->
+                                                                        
+                                // Viewer count oculto cuando está offline
                                 '</div>' +
                                 '<div class="offline-time">Última vez en vivo ' + lastLiveText + '</div>' +
                             '</div>' +
@@ -848,6 +1119,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Iniciando aplicación...');
             renderChannelsList();
+            
+            // Event listener para el botón de calidad
+            document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
+            
+            // Cerrar el dropdown si se hace clic fuera de él
+            document.addEventListener('click', function(event) {
+                var qualityBtn = document.getElementById('qualityBtn');
+                var qualityDropdown = document.getElementById('qualityDropdown');
+                
+                if (qualityBtn && qualityDropdown && 
+                    !qualityBtn.contains(event.target) && 
+                    !qualityDropdown.contains(event.target)) {
+                    qualityDropdown.classList.remove('show');
+                }
+            });
             
             document.getElementById('channelInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
