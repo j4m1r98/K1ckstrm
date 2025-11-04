@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kick.com Stream Player</title>
+    <title>Stream Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -14,10 +15,44 @@
             max-width: 800px; 
             margin: 0 auto; 
         }
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: black;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
         video { 
-            width: 100%; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: black; 
             border-radius: 8px;
+        }
+        .offline-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .offline-icon {
+            font-size: 64px;
+            color: #6441a5;
+            margin-bottom: 20px;
+        }
+        .offline-text {
+            font-size: 18px;
+            color: #ccc;
         }
         .controls { 
             margin: 15px 0; 
@@ -47,60 +82,360 @@
         }
         button:hover { background: #7a52c4; }
         .quality-selector { margin: 10px 0; }
-        .channel-info { margin: 15px 0; padding: 10px; background: #1a1a1a; border-radius: 4px; }
+        .channel-info { 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #1a1a1a; 
+            border-radius: 8px; 
+        }
+        .channel-main-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .channel-profile-container {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .channel-profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid #6441a5;
+            flex-shrink: 0;
+        }
+        .profile-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid #6441a5;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #6441a5;
+            flex-shrink: 0;
+        }
+        .channel-text-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            position: relative;
+        }
+        .channel-name-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .channel-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .channel-title {
+            color: #ccc;
+            font-size: 14px;
+        }
+        .channel-viewers {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .viewers-count {
+            margin-left: 8px;
+            font-weight: bold;
+        }
+        .offline-time {
+            color: #aaa;
+            font-size: 14px;           
+        }
+        
+        /* Estilos para la lista de canales */
+        .channels-list { 
+            margin-top: 20px; 
+            background: #1a1a1a; 
+            border-radius: 8px; 
+            padding: 15px; 
+        }
+        .channels-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
+        .tabs-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
+        .channel-tab { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background: #2a2a2a; 
+            border-radius: 8px; 
+            padding: 10px; 
+            width: 120px; 
+            text-align: center; 
+            transition: all 0.2s; 
+        }
+        .channel-tab:hover { 
+            background: #3a3a3a; 
+            transform: translateY(-2px); 
+        }
+        .channel-tab.active { 
+            border: 2px solid #6441a5; 
+        }
+        .channel-img { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-bottom: 8px; 
+            border: 2px solid #6441a5;
+        }
+        .channel-img-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            border: 2px solid #6441a5;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #6441a5;
+        }
+        .channel-name-tab { 
+            font-size: 14px; 
+            margin-bottom: 8px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            width: 100%; 
+        }
+        .view-btn { 
+            background: #6441a5; 
+            border: none; 
+            color: white; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            width: 100%; 
+        }
+        .view-btn:hover { 
+            background: #7a52c4; 
+        }
+        .delete-btn { 
+            position: absolute; 
+            top: 5px; 
+            right: 5px; 
+            background: rgba(0,0,0,0.7); 
+            border: none; 
+            color: white; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            cursor: pointer; 
+            font-size: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .channel-tab-wrapper { 
+            position: relative; 
+        }
+        .empty-list { 
+            text-align: center; 
+            padding: 20px; 
+            color: #888; 
+        }
     </style>
 </head>
 <body>
     <div class="player-container">
-        <h1>🎥 Kick.com Stream Player</h1>
+        <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
         
         <div class="controls">
-            <input type="text" id="channelInput" placeholder="Nombre del canal" value="Elglogloking">
-            <button onclick="loadStream()">Cargar Stream</button>
-            <button onclick="refreshStream()">🔄 Actualizar</button>
-            <button onclick="autoRefreshToggle()" id="autoRefreshBtn">⏰ Auto-Refresh: OFF</button>
+            <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
+            <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
+            <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
+            <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
         </div>
         
         <div id="status" class="status">Cargando...</div>
         
-        <video id="videoPlayer" controls></video>
+        <div class="video-container">
+            <video id="videoPlayer" controls></video>
+            <div id="offlinePlaceholder" class="offline-placeholder" style="display: none;">
+                <i class="fas fa-eye-slash offline-icon"></i>
+                <div class="offline-text">Canal Offline</div>
+            </div>
+        </div>
         
         <div id="channelInfo" class="channel-info"></div>
+        
+        <!-- Lista de canales favoritos -->
+        <div class="channels-list" id="channelsList">
+            <div class="channels-header">
+                <h2><i class="fas fa-list"></i> Canales Guardados</h2>
+            </div>
+            <div class="tabs-container" id="tabsContainer">
+                <!-- Los tabs de canales se generarán aquí dinámicamente -->
+            </div>
+        </div>
     </div>
 
     <script>
         let hls = null;
         let autoRefreshInterval = null;
         let isAutoRefresh = false;
+        let viewersUpdateInterval = null;
+        let currentChannel = '';
         const WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
+        
+        // Lista de canales guardados
+        let savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
+
+        // Función makeRequest idéntica a la de tu otra web
+        function makeRequest(url) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            resolve(data);
+                        } catch (e) {
+                            reject(new Error('Error parsing JSON'));
+                        }
+                    } else {
+                        reject(new Error('HTTP error: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error'));
+                };
+                xhr.send();
+            });
+        }
+
+        // Función getLastLiveText exactamente igual a la de tu otra web
+        function getLastLiveText(username) {
+            return makeRequest('https://kick.com/api/v1/channels/' + username)
+                .then(function(data) {
+                    if (Array.isArray(data.previous_livestreams) && data.previous_livestreams.length > 0) {
+                        var last = data.previous_livestreams[0];
+                        var startMs = Date.parse((last.created_at || '') + "Z");
+                        var durMs = Number(last.duration);
+                        if (!isNaN(startMs) && !isNaN(durMs) && durMs > 0) {
+                            var endMs = startMs + durMs;
+                            var agoMs = Date.now() - endMs;
+                            if (agoMs > 0) {
+                                var totalSeconds = Math.floor(agoMs / 1000);
+                                if (totalSeconds < 60) {
+                                    return "menos de un min";
+                                }
+                                var totalMinutes = Math.floor(totalSeconds / 60);
+                                var totalHours = Math.floor(totalMinutes / 60);
+                                var days = Math.floor(totalHours / 24);
+                                var hours = totalHours % 24;
+                                var minutes = totalMinutes % 60;
+                                var parts = [];
+                                if (days > 0) {
+                                    parts.push(days + ' día' + (days !== 1 ? 's' : ''));
+                                }
+                                if (hours > 0) {
+                                    parts.push(hours + ' h');
+                                }
+                                if (minutes > 0 && days === 0) {
+                                    parts.push(minutes + ' min');
+                                }
+                                if (parts.length === 0) {
+                                    return "menos de un min";
+                                }
+                                return 'hace ' + parts.join(' ');
+                            }
+                        }
+                    }
+                    return "Nunca ha estado en vivo";
+                })
+                .catch(function(e) {
+                    console.warn('Error al obtener último live de ' + username + ':', e);
+                    return "No disponible";
+                });
+        }
 
         async function loadStream() {
             const channelName = document.getElementById('channelInput').value.trim();
             if (!channelName) {
-                updateStatus('❌ Ingresa un nombre de canal', 'error');
+                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
                 return;
             }
             
+            // Limpiar intervalos anteriores y cualquier reproducción en curso
+            clearInterval(viewersUpdateInterval);
+            
+            // Limpiar el video completamente antes de empezar
+            const video = document.getElementById('videoPlayer');
+            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            video.pause();
+            video.src = '';
+            video.load();
+            
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            
+            currentChannel = channelName;
+            
             try {
-                updateStatus('🔍 Buscando stream...', 'loading');
+                updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
                 
                 // Usar tu Worker para obtener el stream
                 const streamData = await getStreamFromWorker(channelName);
                 
-                if (!streamData || !streamData.playback_url) {
+                if (!streamData) {
+                    throw new Error('No se pudo obtener información del canal');
+                }
+                
+                // Verificar si el canal está online - SI ESTÁ OFFLINE, SALIR INMEDIATAMENTE
+                if (!streamData.channel_info.is_live) {
+                    await showOfflinePlaceholder(streamData.channel_info);
+                    updateStatus('<i class="fas fa-eye-slash"></i> El canal está offline', 'error');
+                    return; // Este return es crucial
+                }
+                
+                if (!streamData.playback_url) {
                     throw new Error('No se pudo obtener el stream del Worker');
                 }
                 
                 console.log('URL del stream obtenida:', streamData.playback_url);
-                updateStatus('✅ Stream encontrado, cargando video...', 'success');
+                updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
                 
                 // Usar un proxy CORS público para el stream m3u8
                 const proxiedStreamUrl = await getProxiedStreamUrl(streamData.playback_url);
                 playStream(proxiedStreamUrl);
                 updateChannelInfo(streamData.channel_info);
                 
+                // Iniciar actualización automática del viewers count
+                startViewersUpdate(channelName);
+                
             } catch (error) {
-                updateStatus('❌ Error: ' + error.message, 'error');
+                updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
                 console.error('Error:', error);
             }
         }
@@ -152,6 +487,11 @@
 
         function playStream(url) {
             const video = document.getElementById('videoPlayer');
+            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            
+            // Mostrar video y ocultar placeholder
+            video.style.display = 'block';
+            offlinePlaceholder.style.display = 'none';
             
             // Detener HLS anterior
             if (hls) {
@@ -180,33 +520,33 @@
                 hls.attachMedia(video);
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('✅ Manifiesto HLS cargado correctamente');
+                    console.log('<i class="fas fa-check"></i> Manifiesto HLS cargado correctamente');
                     video.play().catch(e => {
                         console.log('Auto-play bloqueado:', e);
-                        updateStatus('⏸️ Click en play para iniciar', 'loading');
+                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
                 
                 hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
-                    console.log('📊 Calidad cargada');
-                    updateStatus('▶️ Reproduciendo', 'success');
+                    console.log('<i class="fas fa-chart-bar"></i> Calidad cargada');
+                    updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
                 });
                 
                 hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('❌ Error HLS:', data);
+                    console.error('<i class="fas fa-exclamation-circle"></i> Error HLS:', data);
                     
                     if (data.fatal) {
                         switch(data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log('🔄 Error de red, intentando recuperar...');
-                                updateStatus('🔁 Error de red, reconectando...', 'error');
+                                console.log('<i class="fas fa-sync-alt"></i> Error de red, intentando recuperar...');
+                                updateStatus('<i class="fas fa-redo"></i> Error de red, reconectando...', 'error');
                                 setTimeout(() => {
                                     if (hls) hls.startLoad();
                                 }, 2000);
                                 break;
                             default:
-                                console.log('💀 Error fatal, recargando stream...');
-                                updateStatus('❌ Error del stream, recargando...', 'error');
+                                console.log('<i class="fas fa-skull-crossbones"></i> Error fatal, recargando stream...');
+                                updateStatus('<i class="fas fa-exclamation-circle"></i> Error del stream, recargando...', 'error');
                                 setTimeout(loadStream, 3000);
                                 break;
                         }
@@ -215,32 +555,55 @@
                 
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // Safari native HLS support
-                console.log('🔍 Usando HLS nativo de Safari');
+                console.log('<i class="fab fa-safari"></i> Usando HLS nativo de Safari');
                 video.src = url;
                 video.addEventListener('loadedmetadata', function() {
-                    console.log('✅ Metadata cargada en Safari');
+                    console.log('<i class="fas fa-check"></i> Metadata cargada en Safari');
                     video.play().catch(e => {
                         console.log('Auto-play bloqueado en Safari:', e);
-                        updateStatus('⏸️ Click en play para iniciar', 'loading');
+                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
             } else {
-                updateStatus('❌ HLS no soportado en este navegador', 'error');
+                updateStatus('<i class="fas fa-exclamation-circle"></i> HLS no soportado en este navegador', 'error');
                 return;
             }
             
-            // Event listeners para el elemento video
+            // Event listeners para el elemento video - SOLO cuando el canal está online
             video.addEventListener('waiting', () => {
-                updateStatus('⏳ Buffering...', 'loading');
+                updateStatus('<i class="fas fa-hourglass-half"></i> Buffering...', 'loading');
             });
             
             video.addEventListener('playing', () => {
-                updateStatus('▶️ Reproduciendo', 'success');
+                updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
             });
         }
 
+        async function showOfflinePlaceholder(channelInfo) {
+            // Detener cualquier reproducción en curso
+            const video = document.getElementById('videoPlayer');
+            const offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            
+            video.pause();
+            video.src = '';
+            video.load();
+            
+            // Ocultar video y mostrar placeholder
+            video.style.display = 'none';
+            offlinePlaceholder.style.display = 'flex';
+            
+            // Limpiar intervalos de actualización
+            clearInterval(viewersUpdateInterval);
+            
+            // Obtener información del último stream usando la misma función de tu otra web
+            const lastLiveText = await getLastLiveText(channelInfo.name);
+            
+            // Actualizar información del canal
+            updateOfflineChannelInfo(channelInfo, lastLiveText);
+        }
+
         function refreshStream() {
-            console.log('🔄 Actualización manual del stream');
+            console.log('<i class="fas fa-sync-alt"></i> Actualización manual del stream');
             loadStream();
         }
 
@@ -250,38 +613,211 @@
             if (isAutoRefresh) {
                 clearInterval(autoRefreshInterval);
                 isAutoRefresh = false;
-                btn.textContent = '⏰ Auto-Refresh: OFF';
+                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: OFF';
                 updateStatus('Auto-refresh desactivado', 'success');
             } else {
                 autoRefreshInterval = setInterval(refreshStream, 20000); // Cada 20 segundos
                 isAutoRefresh = true;
-                btn.textContent = '⏰ Auto-Refresh: ON';
+                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: ON';
                 updateStatus('Auto-refresh activado (cada 20s)', 'success');
             }
         }
 
         function updateStatus(message, type) {
             const status = document.getElementById('status');
-            status.textContent = message;
+            status.innerHTML = message;
             status.className = 'status ' + type;
         }
 
         function updateChannelInfo(info) {
             const container = document.getElementById('channelInfo');
             if (info && info.name) {
+                const profilePic = info.profile_pic ? 
+                    `<img src="${info.profile_pic}" class="channel-profile-pic" alt="${info.name}">` :
+                    `<div class="profile-placeholder"><i class="fas fa-user"></i></div>`;
+                
                 container.innerHTML = `
-                    <h3>${info.name}</h3>
-                    ${info.title ? '<p><strong>Título:</strong> ' + info.title + '</p>' : ''}
-                    ${info.thumbnail ? `<img src="${info.thumbnail}" height="60" style="border-radius: 4px; margin-top: 10px;">` : ''}
+                    <div class="channel-main-info">
+                        <div class="channel-profile-container">
+                            ${profilePic}
+                            <div class="channel-text-info">
+                                <div class="channel-name-line">
+                                    <div class="channel-name">${info.name}</div>
+                                    <div class="channel-viewers">
+                                        <i class="fas fa-eye"></i>
+                                        <span class="viewers-count">${info.viewer_count || 0}</span>
+                                    </div>
+                                </div>
+                                <div class="channel-title">${info.title || 'Sin título'}</div>
+                            </div>
+                        </div>
+                    </div>
                 `;
             } else {
                 container.innerHTML = '<p>Información del canal no disponible</p>';
             }
         }
 
+        function updateOfflineChannelInfo(info, lastLiveText) {
+            const container = document.getElementById('channelInfo');
+            if (info && info.name) {
+                const profilePic = info.profile_pic ? 
+                    `<img src="${info.profile_pic}" class="channel-profile-pic" alt="${info.name}">` :
+                    `<div class="profile-placeholder"><i class="fas fa-user"></i></div>`;
+                
+                container.innerHTML = `
+                    <div class="channel-main-info">
+                        <div class="channel-profile-container">
+                            ${profilePic}
+                            <div class="channel-text-info">
+                                <div class="channel-name-line">
+                                    <div class="channel-name">${info.name}</div>
+                                    <!-- Viewer count oculto cuando está offline -->
+                                </div>
+                                <div class="offline-time">Última vez en vivo ${lastLiveText}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p>Información del canal no disponible</p>';
+            }
+        }
+
+        // Función para actualizar solo el viewers count
+        async function updateViewersCount(channelName) {
+            try {
+                const streamData = await getStreamFromWorker(channelName);
+                if (streamData && streamData.channel_info) {
+                    const viewersCount = streamData.channel_info.viewer_count || 0;
+                    const viewersElement = document.querySelector('.viewers-count');
+                    if (viewersElement) {
+                        viewersElement.textContent = viewersCount;
+                    }
+                    
+                    // Si el canal está offline, detener la actualización
+                    if (!streamData.channel_info.is_live) {
+                        clearInterval(viewersUpdateInterval);
+                        updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
+                        
+                        // Limpiar el video
+                        const video = document.getElementById('videoPlayer');
+                        video.pause();
+                        video.src = '';
+                        video.load();
+                        
+                        await showOfflinePlaceholder(streamData.channel_info);
+                    }
+                }
+            } catch (error) {
+                console.error('Error actualizando viewers count:', error);
+            }
+        }
+
+        // Iniciar la actualización automática del viewers count
+        function startViewersUpdate(channelName) {
+            // Limpiar cualquier intervalo anterior
+            clearInterval(viewersUpdateInterval);
+            
+            // Actualizar cada minuto (60000 ms)
+            viewersUpdateInterval = setInterval(() => {
+                updateViewersCount(channelName);
+            }, 60000);
+            
+            console.log('Iniciando actualización automática de viewers cada minuto');
+        }
+
+        // Función para agregar canal a la lista
+        async function addToList() {
+            const channelName = document.getElementById('channelInput').value.trim();
+            if (!channelName) {
+                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
+                return;
+            }
+            
+            // Verificar si el canal ya está en la lista
+            if (savedChannels.some(channel => channel.name === channelName)) {
+                updateStatus('<i class="fas fa-info-circle"></i> Este canal ya está en tu lista', 'loading');
+                return;
+            }
+            
+            try {
+                updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
+                
+                const streamData = await getStreamFromWorker(channelName);
+                if (!streamData || !streamData.channel_info) {
+                    throw new Error('No se pudo obtener información del canal');
+                }
+                
+                const channelInfo = streamData.channel_info;
+                const newChannel = {
+                    name: channelName,
+                    profile_pic: channelInfo.profile_pic || '',
+                    displayName: channelInfo.name || channelName
+                };
+                
+                savedChannels.push(newChannel);
+                localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+                renderChannelsList();
+                
+                updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
+                
+            } catch (error) {
+                updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Función para cargar un canal desde la lista
+        function loadChannel(channelName) {
+            document.getElementById('channelInput').value = channelName;
+            loadStream();
+        }
+
+        // Función para eliminar un canal de la lista
+        function removeChannel(channelName) {
+            savedChannels = savedChannels.filter(channel => channel.name !== channelName);
+            localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+            renderChannelsList();
+            updateStatus('<i class="fas fa-trash-alt"></i> Canal eliminado de la lista', 'success');
+        }
+
+        // Función para renderizar la lista de canales
+        function renderChannelsList() {
+            const tabsContainer = document.getElementById('tabsContainer');
+            
+            if (savedChannels.length === 0) {
+                tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-inbox"></i> No hay canales guardados</div>';
+                return;
+            }
+            
+            tabsContainer.innerHTML = savedChannels.map(channel => `
+                <div class="channel-tab-wrapper">
+                    <div class="channel-tab">
+                        ${channel.profile_pic ? 
+                            `<img src="${channel.profile_pic}" alt="${channel.displayName}" class="channel-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ''
+                        }
+                        <div class="${channel.profile_pic ? 'channel-img-placeholder' : 'channel-img-placeholder'}" 
+                             style="${channel.profile_pic ? 'display: none;' : 'display: flex;'}">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="channel-name-tab">${channel.displayName}</div>
+                        <button class="view-btn" onclick="loadChannel('${channel.name}')">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </div>
+                    <button class="delete-btn" onclick="removeChannel('${channel.name}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
         // Cargar al iniciar
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando aplicación...');
+            console.log('<i class="fas fa-rocket"></i> Iniciando aplicación...');
+            renderChannelsList();
             loadStream();
             
             document.getElementById('channelInput').addEventListener('keypress', function(e) {
