@@ -426,6 +426,8 @@
             margin-bottom: 12px;
             font-size: 20px;  
         } 
+ 
+/* Fallback para dispositivos que NO soportan grid */
 @supports not (display: grid) {
 
     .tabs-container {
@@ -433,16 +435,23 @@
         flex-wrap: wrap;
         justify-content: flex-start;
 
-        /* compensamos el margen que daremos a los hijos */
-        margin: -7px;
+        /* Compensamos los márgenes de los hijos */
+        margin-top: -7px;
+        margin-left: -7px;
     }
 
     .tabs-container > .channel-tab {
         flex: 1 1 120px;
-        margin: 7px;
+
+        /* márgenes individuales porque margin: no funciona */
+        margin-top: 7px;
+        margin-left: 7px;
+
+        /* No damos margen a derecha/abajo, flex se encarga */
         box-sizing: border-box;
     }
 }
+
 
         /* Responsive para tablets */
         @media (max-width: 768px) {
