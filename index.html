@@ -227,6 +227,13 @@
         .channel-name {
             font-size: 18px;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            grid-gap: 6px;
+        }
+        .verified-badge {
+            width: 19px;
+            height: 19px;
         }
         .channel-title {
             color: #ccc;
@@ -330,6 +337,9 @@
             overflow: hidden; 
             text-overflow: ellipsis; 
             width: 100%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .channel-status {
             display: flex;
@@ -379,19 +389,26 @@
         }
         .delete-btn { 
             position: absolute; 
-            top: 2px; 
-            right: 2px; 
+            top: 6px; 
+            right: 6px; 
             background: rgba(0,0,0,0.7); 
             border: none; 
             color: white; 
             border-radius: 50%; 
-            width: 20px; 
-            height: 20px; 
+            width: 22px; 
+            height: 22px;
+            padding: 0;
+            margin: 0;
             cursor: pointer; 
-            font-size: 10px; 
-            display: flex; 
+            font-size: 12px;            
             align-items: center; 
             justify-content: center; 
+        }
+        .channel-tab-wrapper .delete-btn {
+            display: none;
+        }
+        .channel-tab-wrapper:hover .delete-btn {
+            display: flex;
         }
         .channel-tab-wrapper { 
             position: relative; 
@@ -439,6 +456,9 @@
                 padding: 8px 16px;
                 font-size: 16px;
             }
+            .delete-btn {
+                display: flex;
+            }
         }
 
         /* Responsive para móviles */
@@ -477,6 +497,9 @@
             .refresh-btn span {
                 display: none;
             }
+            .channel-tab-wrapper .delete-btn {
+                display: flex;
+            }
         }
     </style>
 </head>
@@ -502,12 +525,18 @@
             </div>
         </div>
         
-        <div id="status" class="status">Cargando...</div>
+        <div id="status" class="status">Selecciona un canal para comenzar</div>
         
         <div class="video-container">
-            <video id="videoPlayer" controls></video>
-            <div id="offlinePlaceholder" class="offline-placeholder" style="display: none;">
-                
+            <video id="videoPlayer" controls style="display: none;"></video>
+            <div id="offlinePlaceholder" class="offline-placeholder">
+                <i class="fas fa-play-circle offline-icon"></i>
+                <div class="offline-channel-name">Stream Player</div>
+                <div class="offline-status">Selecciona un canal para comenzar</div>
+                <div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>
+                <button class="offline-btn" onclick="document.getElementById('channelInput').focus()">
+                    <i class="fas fa-search"></i> Buscar canal
+                </button>
             </div>
         </div>
         
@@ -542,13 +571,21 @@
 
         // Función para hacer scroll suave al contenedor de video
         function scrollToVideoContainer() {
-            const videoContainer = document.querySelector('.video-container');
+            const videoContainer = document.querySelector('.status');
             if (videoContainer) {
                 videoContainer.scrollIntoView({ 
                     behavior: 'smooth',
                     block: 'start'
                 });
             }
+        }
+
+        // Función para generar el verified badge si el canal está verificado
+        function getVerifiedBadge(verified) {
+            if (verified) {
+                return '<img src="https://raw.githubusercontent.com/j4m1r98/Utilidades/refs/heads/main/verified-badge.svg" class="verified-badge" alt="Verified">';
+            }
+            return '';
         }
 
         // Función makeRequest
@@ -1013,7 +1050,7 @@
                             profilePic +
                             '<div class="channel-text-info">' +
                                 '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + '</div>' +
+                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
                                     '<div class="channel-viewers">' +
                                         '<i class="fas fa-users"></i>' +
                                         '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
@@ -1041,7 +1078,7 @@
                             profilePic +
                             '<div class="channel-text-info">' +
                                 '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + '</div>' +
+                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
                                                                         
                                 // Viewer count oculto cuando está offline
                                 '</div>' +
@@ -1128,7 +1165,8 @@
                     var newChannel = {
                         name: channelName,
                         profile_pic: channelInfo.profile_pic || '',
-                        displayName: channelInfo.name || channelName
+                        displayName: channelInfo.name || channelName,
+                        verified: channelInfo.verified || false
                     };
                     
                     savedChannels.push(newChannel);
@@ -1172,12 +1210,13 @@
                     
                     return {
                         is_live: streamData.channel_info.is_live,
-                        viewer_count: streamData.channel_info.viewer_count || 0
+                        viewer_count: streamData.channel_info.viewer_count || 0,
+                        verified: streamData.channel_info.verified || false
                     };
                 })
                 .catch(function(error) {
                     console.error('Error obteniendo estado del canal:', error);
-                    return { is_live: false, viewer_count: 0 };
+                    return { is_live: false, viewer_count: 0, verified: false };
                 });
         }
 
@@ -1291,9 +1330,47 @@ function updateChannelsStatus() {
             updateStatus('<i class="fas fa-exclamation-circle"></i> Error al actualizar estados', 'error');
         });
 }
+
+        // Función para mostrar el placeholder inicial
+        function showInitialPlaceholder() {
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            
+            // Ocultar video y mostrar placeholder
+            video.style.display = 'none';
+            offlinePlaceholder.style.display = 'flex';
+            
+            // Limpiar cualquier reproducción en curso
+            video.pause();
+            video.src = '';
+            video.load();
+            
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            
+            // Limpiar intervalos de actualización
+            clearInterval(viewersUpdateInterval);
+            
+            // Limpiar información del canal
+            document.getElementById('channelInfo').innerHTML = '';
+            
+            // Actualizar placeholder con contenido inicial
+            offlinePlaceholder.innerHTML = 
+                '<i class="fas fa-play-circle offline-icon"></i>' +
+                '<div class="offline-channel-name">Stream Player</div>' +
+                '<div class="offline-status">Selecciona un canal para comenzar</div>' +
+                '<div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>' +
+                '<button class="offline-btn" onclick="document.getElementById(\'channelInput\').focus()">' +
+                    '<i class="fas fa-search"></i> Buscar canal' +
+                '</button>';
+        }
+
         // Cargar al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Iniciando aplicación...');
+            showInitialPlaceholder(); // Mostrar placeholder inicial
             renderChannelsList();
             
             // Event listener para el botón de calidad
