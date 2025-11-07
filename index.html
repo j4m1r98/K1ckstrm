@@ -733,20 +733,140 @@
                     console.log('URL del stream obtenida:', streamData.playback_url);
                     updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
                     
-                    // Usar un proxy CORS público para el stream m3u8
-                    return getProxiedStreamUrl(streamData.playback_url)
-                        .then(function(proxiedStreamUrl) {
-                            playStream(proxiedStreamUrl);
-                            updateChannelInfo(streamData.channel_info);
+                    // PRIMERO: Intentar con el enlace directo SIN proxy
+                    return attemptDirectPlay(streamData.playback_url)
+                        .then(function(success) {
+                            if (success) {
+                                // Éxito con enlace directo
+                                updateChannelInfo(streamData.channel_info);
+                                startViewersUpdate(channelName);
+                                return;
+                            }
                             
-                            // Iniciar actualización automática del viewers count
-                            startViewersUpdate(channelName);
+                            // SEGUNDO: Si falla el directo, intentar con proxies
+                            updateStatus('<i class="fas fa-redo"></i> Falló enlace directo, probando con proxy...', 'loading');
+                            return getProxiedStreamUrl(streamData.playback_url)
+                                .then(function(proxiedStreamUrl) {
+                                    playStream(proxiedStreamUrl);
+                                    updateChannelInfo(streamData.channel_info);
+                                    startViewersUpdate(channelName);
+                                });
                         });
                 })
                 .catch(function(error) {
                     updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
                     console.error('Error:', error);
                 });
+        }
+
+        // Nueva función para intentar reproducción directa
+        function attemptDirectPlay(streamUrl) {
+            return new Promise(function(resolve) {
+                var video = document.getElementById('videoPlayer');
+                var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+                
+                // Mostrar video y ocultar placeholder
+                video.style.display = 'block';
+                offlinePlaceholder.style.display = 'none';
+                
+                // Detener HLS anterior
+                if (hls) {
+                    hls.destroy();
+                    hls = null;
+                }
+                
+                console.log('Intentando reproducción directa:', streamUrl);
+                
+                // Limpiar fuente anterior
+                video.src = '';
+                video.load();
+                
+                var directPlaySuccess = false;
+                var timeoutId;
+                
+                function cleanup() {
+                    clearTimeout(timeoutId);
+                    video.removeEventListener('loadedmetadata', onSuccess);
+                    video.removeEventListener('error', onError);
+                    video.removeEventListener('canplay', onSuccess);
+                }
+                
+                function onSuccess() {
+                    if (directPlaySuccess) return;
+                    directPlaySuccess = true;
+                    cleanup();
+                    console.log('Reproducción directa exitosa');
+                    updateStatus('<i class="fas fa-play"></i> Reproduciendo (directo)', 'success');
+                    resolve(true);
+                }
+                
+                function onError() {
+                    if (directPlaySuccess) return;
+                    cleanup();
+                    console.log('Reproducción directa falló');
+                    resolve(false);
+                }
+                
+                // Configurar event listeners
+                video.addEventListener('loadedmetadata', onSuccess);
+                video.addEventListener('canplay', onSuccess);
+                video.addEventListener('error', onError);
+                
+                // Timeout después de 10 segundos
+                timeoutId = setTimeout(function() {
+                    if (!directPlaySuccess) {
+                        console.log('Timeout en reproducción directa');
+                        onError();
+                    }
+                }, 10000);
+                
+                // Intentar reproducir con HLS.js primero
+                if (window.Hls && Hls.isSupported()) {
+                    hls = new Hls({
+                        enableWorker: false,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
+                    hls.loadSource(streamUrl);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        console.log('Manifiesto HLS cargado correctamente (directo)');
+                        updateQualityDropdown();
+                        video.play().catch(function(e) {
+                            console.log('Auto-play bloqueado (directo):', e);
+                        });
+                        onSuccess();
+                    });
+                    
+                    hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
+                        console.log('Calidad cargada (directo)');
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.error('Error HLS (directo):', data);
+                        if (data.fatal && !directPlaySuccess) {
+                            hls.destroy();
+                            onError();
+                        }
+                    });
+                    
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari native HLS support
+                    console.log('Usando HLS nativo (directo)');
+                    video.src = streamUrl;
+                    video.addEventListener('loadedmetadata', function() {
+                        console.log('Metadata cargada (directo)');
+                        video.play().catch(function(e) {
+                            console.log('Auto-play bloqueado (directo):', e);
+                        });
+                    });
+                } else {
+                    console.log('HLS no soportado, fallando a proxy');
+                    onError();
+                }
+            });
         }
 
         function getStreamFromWorker(channel) {
@@ -853,24 +973,24 @@
                 hls.attachMedia(video);
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('Manifiesto HLS cargado correctamente');
+                    console.log('Manifiesto HLS cargado correctamente (proxy)');
                     
                     // Obtener las calidades disponibles y actualizar el dropdown
                     updateQualityDropdown();
                     
                     video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado:', e);
+                        console.log('Auto-play bloqueado (proxy):', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
                 
                 hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
-                    console.log('Calidad cargada');
-                    updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
+                    console.log('Calidad cargada (proxy)');
+                    updateStatus('<i class="fas fa-play"></i> Reproduciendo (proxy)', 'success');
                 });
                 
                 hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('Error HLS:', data);
+                    console.error('Error HLS (proxy):', data);
                     
                     if (data.fatal) {
                         switch(data.type) {
@@ -892,12 +1012,12 @@
                 
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // Safari native HLS support
-                console.log('Usando HLS nativo');
+                console.log('Usando HLS nativo (proxy)');
                 video.src = url;
                 video.addEventListener('loadedmetadata', function() {
-                    console.log('Metadata cargada');
+                    console.log('Metadata cargada (proxy)');
                     video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado:', e);
+                        console.log('Auto-play bloqueado (proxy):', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
                     });
                 });
