@@ -775,6 +775,7 @@
         function getProxiedStreamUrl(streamUrl) {
             // Usar un proxy CORS público para evitar bloqueos
             var proxyUrls = [
+                'https://procsyurlstrm.j4m1r-98.workers.dev/?url=' + encodeURIComponent(streamUrl),
                 'https://corsproxy.io/?' + encodeURIComponent(streamUrl),
                 'https://api.allorigins.win/raw?url=' + encodeURIComponent(streamUrl),
                 'https://cors-anywhere.herokuapp.com/' + streamUrl
