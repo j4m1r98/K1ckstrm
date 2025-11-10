@@ -872,7 +872,6 @@
         var isAutoRefresh = false;
         var viewersUpdateInterval = null;
         var currentChannel = '';
-        var WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
         var currentLevels = [];
         var channelInfoTimeout = null;
         
@@ -968,6 +967,44 @@
                 });
         }
 
+        // Nueva función para obtener datos de la API directa de Kick
+        function getStreamFromKickAPI(channel) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://kick.com/api/v2/channels/' + encodeURIComponent(channel), true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            
+                            // Mapear los datos según la estructura requerida
+                            var streamData = {
+                                playback_url: data.playback_url,
+                                channel_info: {
+                                    name: data.user ? data.user.username : channel,
+                                    title: data.livestream ? data.livestream.session_title : '',
+                                    profile_pic: data.user ? data.user.profile_pic : '',
+                                    is_live: data.livestream ? data.livestream.is_live : false,
+                                    viewer_count: data.livestream ? data.livestream.viewer_count : 0,
+                                    verified: data.verified || false
+                                }
+                            };
+                            
+                            resolve(streamData);
+                        } catch (e) {
+                            reject(new Error('Error parsing JSON from Kick API'));
+                        }
+                    } else {
+                        reject(new Error('Error del Kick API: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error when connecting to Kick API'));
+                };
+                xhr.send();
+            });
+        }
+
         function loadStream() {
             var channelName = document.getElementById('channelInput').value.trim();
             if (!channelName) {
@@ -997,8 +1034,8 @@
             // Conectar al chat del canal
             joinChannel(channelName);
             
-            // Usar tu Worker para obtener el stream
-            getStreamFromKick(channelName)
+            // Usar la API directa de Kick para obtener el stream
+            getStreamFromKickAPI(channelName)
                 .then(function(streamData) {
                     if (!streamData) {
                         throw new Error('No se pudo obtener información del canal');
@@ -1013,7 +1050,7 @@
                     }
                     
                     if (!streamData.playback_url) {
-                        throw new Error('No se pudo obtener el stream del Worker');
+                        throw new Error('No se pudo obtener el stream del Kick API');
                     }
                     
                     console.log('URL del stream obtenida:', streamData.playback_url);
@@ -1154,40 +1191,6 @@
                 }
             });
         }
-
-        function getStreamFromKick(channel) {
-    return new Promise(function(resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "https://kick.com/api/v2/channels/" + encodeURIComponent(channel), true);
-        xhr.onload = function () {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-
-                    resolve({
-                        playback_url: data.playback_url || null,
-                        channel_info: {
-                            name: data.user?.username,
-                            title: data.livestream?.session_title,
-                            profile_pic: data.user?.profile_pic,
-                            is_live: data.livestream?.is_live,
-                            viewer_count: data.livestream?.viewer_count,
-                            verified: data.verified
-                        }
-                    });
-                } catch (e) {
-                    reject(new Error('Error parse JSON Kick API'));
-                }
-            } else {
-                reject(new Error('Kick API error: ' + xhr.status));
-            }
-        };
-        xhr.onerror = function () {
-            reject(new Error('Network error (Kick API)'));
-        };
-        xhr.send();
-    });
-}
 
         function getProxiedStreamUrl(streamUrl) {
             // Usar un proxy CORS público para evitar bloqueos
@@ -1558,7 +1561,7 @@
 
         // Función para actualizar solo el viewers count
         function updateViewersCount(channelName) {
-            getStreamFromKick(channelName)
+            getStreamFromKickAPI(channelName)
                 .then(function(streamData) {
                     if (streamData && streamData.channel_info) {
                         var viewersCount = streamData.channel_info.viewer_count || 0;
@@ -1620,7 +1623,7 @@
             
             updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
             
-            getStreamFromKick(channelName)
+            getStreamFromKickAPI(channelName)
                 .then(function(streamData) {
                     if (!streamData || !streamData.channel_info) {
                         throw new Error('No se pudo obtener información del canal');
@@ -1667,7 +1670,7 @@
 
         // Función para obtener el estado de un canal
         function getChannelStatus(channelName) {
-            return getStreamFromKick(channelName)
+            return getStreamFromKickAPI(channelName)
                 .then(function(streamData) {
                     if (!streamData || !streamData.channel_info) {
                         throw new Error('No se pudo obtener información del canal');
