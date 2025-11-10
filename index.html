@@ -5,16 +5,86 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --left-column-width: 220px;
+            --right-column-width: 320px;
+        }
+        
         body { 
             font-family: Arial, sans-serif; 
-            margin: 20px; 
+            margin: 0; 
+            padding: 0;
             background: #0f0f0f; 
             color: white; 
+            height: 100vh;
+            overflow: hidden;
         }
-        .player-container { 
-            max-width: 800px; 
-            margin: 0 auto; 
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
         }
+        
+        /* Columna izquierda - Controles */
+        .left-column {
+            width: var(--left-column-width);
+            background: #1a1a1a;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        
+        .left-column h1 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .left-column h1 i {
+            margin-right: 8px;
+            color: #6441a5;
+        }
+        
+        .controls { 
+            margin-bottom: 15px;
+        }
+        
+        .controls input {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        
+        .controls button {
+            width: 100%;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        
+        .quality-selector {
+            margin: 10px 0;
+        }
+        
+        .quality-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Columna central - Video y canales */
+        .center-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+        
         .video-container {
             position: relative;
             width: 100%;
@@ -24,6 +94,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
+        
         video { 
             position: absolute;
             top: 0;
@@ -33,6 +104,7 @@
             background: black; 
             border-radius: 8px;
         }
+        
         .offline-placeholder {
             position: absolute;
             top: 0;
@@ -95,12 +167,6 @@
             background: #7a52c4;
         }
              
-        .controls { 
-            margin: 15px 0; 
-            padding: 15px; 
-            background: #1a1a1a; 
-            border-radius: 8px; 
-        }
         .status { 
             padding: 10px; 
             margin: 10px 0; 
@@ -109,6 +175,7 @@
         .success { background: #1a3c1a; color: #4CAF50; }
         .error { background: #3c1a1a; color: #f44336; }
         .loading { background: #1a1a3c; color: #2196F3; }
+        
         select, button, input { 
             padding: 8px 12px; 
             margin: 5px; 
@@ -122,6 +189,7 @@
             cursor: pointer; 
         }
         button:hover { background: #7a52c4; }
+        
         .quality-selector { 
             margin: 10px 0; 
             position: relative;
@@ -174,6 +242,7 @@
             background: #6441a5;
             color: white;
         }
+        
         .channel-info { 
             margin: 15px 0; 
             padding: 15px; 
@@ -452,9 +521,124 @@
     }
 }
 
+        /* Columna derecha - Chat */
+        .right-column {
+            width: var(--right-column-width);
+            background: #0d1117;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .titulo {
+            padding: 8px 12px;
+            background: #161b22;
+            border-bottom: 2px solid #30363d;
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+        
+        #messages-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 0;
+            min-width: 0;
+            min-height: 0;
+        }
+        
+        #messages {
+            flex: 1; 
+            overflow: auto;    
+        }
+
+        /* Mensajes */
+        .msg {
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 1rem;
+            line-height: 1.25rem;
+            margin: 0 6px;
+            margin-top: 2px;
+            padding: 4px 8px;
+        }
+        
+        .username {
+            font-size: 1rem;
+            line-height: 1.25rem;
+            font-weight: 700;  
+            white-space: normal;
+        }
+        
+        .colon {
+            color: #ffffff;
+            font-size: 1rem;
+            line-height: 1.25rem;
+            font-weight: 900;
+            margin-right: 2px;
+            white-space: normal;
+        }
+        
+        .msg span:last-child {
+            word-break: break-word;
+        }
+        
+        .chat-emote {
+            height: 20px;
+            margin: 0 2px;
+            vertical-align: middle;
+            image-rendering: pixelated;
+        }
+
+        /* Botón scroll */
+        #scrollBottomBtn {  
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 400px;
+            background: #3A3B40;
+            color: #ffffff;
+            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+        }
+        
+        #scrollBottomBtn i {
+            font-size: 16px;
+            margin-right: 6px;
+        }
+        
+        .footer {
+            padding: 8px;
+            border-top: 1px solid #30363d;
+            background: #161b22;
+            text-align: center;
+            font-size: 12px;
+            color: #8b949e
+        }
 
         /* Responsive para tablets */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
+            :root {
+                --left-column-width: 200px;
+                --right-column-width: 280px;
+            }
+            
             .offline-placeholder {
                 padding: 15px;
             }
@@ -489,7 +673,21 @@
         }
 
         /* Responsive para móviles */
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+            
+            .left-column, .center-column, .right-column {
+                width: 100%;
+            }
+            
+            .right-column {
+                height: 50vh;
+            }
+            
             .offline-placeholder {
                 padding: 15px;
             }
@@ -531,55 +729,71 @@
     </style>
 </head>
 <body>
-    <div class="player-container">
-        <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
-        
-        <div class="controls">
-            <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
-            <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
-            <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
-            <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
-            <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
+    <div class="app-container">
+        <!-- Columna izquierda - Controles -->
+        <div class="left-column">
+            <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
             
-            <!-- Selector de calidad -->
-            <div class="quality-selector">
-                <button class="quality-btn" id="qualityBtn">
-                    <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="quality-dropdown" id="qualityDropdown">
-                    <!-- Las opciones de calidad se agregarán aquí dinámicamente -->
+            <div class="controls">
+                <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
+                <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
+                <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
+                <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
+                
+                <!-- Selector de calidad -->
+                <div class="quality-selector">
+                    <button class="quality-btn" id="qualityBtn">
+                        <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="quality-dropdown" id="qualityDropdown">
+                        <!-- Las opciones de calidad se agregarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="status" class="status">Selecciona un canal para comenzar</div>
+        </div>
+        
+        <!-- Columna central - Video y canales -->
+        <div class="center-column">
+            <div class="video-container">
+                <video id="videoPlayer" controls style="display: none;"></video>
+                <div id="offlinePlaceholder" class="offline-placeholder">
+                    <i class="fas fa-play-circle offline-icon"></i>
+                    <div class="offline-channel-name">Stream Player</div>
+                    <div class="offline-status">Selecciona un canal para comenzar</div>
+                    <div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>
+                    <button class="offline-btn" onclick="document.getElementById('channelInput').focus()">
+                        <i class="fas fa-search"></i> Buscar canal
+                    </button>
+                </div>
+            </div>
+            
+            <div id="channelInfo" class="channel-info"></div>
+            
+            <!-- Lista de canales favoritos -->
+            <div class="channels-list" id="channelsList">
+                <div class="channels-header">
+                    <h2><i class="fas fa-list"></i> Canales Guardados</h2>
+                    <button onclick="updateChannelsStatus()" class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i> <span>Actualizar</span>
+                    </button>
+                </div>
+                <div class="tabs-container" id="tabsContainer">
+                    <!-- Los tabs de canales se generarán aquí dinámicamente -->
                 </div>
             </div>
         </div>
         
-        <div id="status" class="status">Selecciona un canal para comenzar</div>
-        
-        <div class="video-container">
-            <video id="videoPlayer" controls style="display: none;"></video>
-            <div id="offlinePlaceholder" class="offline-placeholder">
-                <i class="fas fa-play-circle offline-icon"></i>
-                <div class="offline-channel-name">Stream Player</div>
-                <div class="offline-status">Selecciona un canal para comenzar</div>
-                <div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>
-                <button class="offline-btn" onclick="document.getElementById('channelInput').focus()">
-                    <i class="fas fa-search"></i> Buscar canal
-                </button>
+        <!-- Columna derecha - Chat -->
+        <div class="right-column">
+            <div class="titulo">Chat</div>
+            <div id="messages-container">
+                <div id="messages"></div>
+                <button id="scrollBottomBtn"><i class="fas fa-pause"></i>chat en pausa, ir al último mensaje</button>
             </div>
-        </div>
-        
-        <div id="channelInfo" class="channel-info"></div>
-        
-        <!-- Lista de canales favoritos -->
-        <div class="channels-list" id="channelsList">
-            <div class="channels-header">
-    <h2><i class="fas fa-list"></i> Canales Guardados</h2>
-    <button onclick="updateChannelsStatus()" class="refresh-btn">
-        <i class="fas fa-sync-alt"></i> <span>Actualizar</span>
-    </button>
-</div>
-            <div class="tabs-container" id="tabsContainer">
-                <!-- Los tabs de canales se generarán aquí dinámicamente -->
-            </div>
+            <div class="footer">Kick Chat Viewer — Tizen ✅</div>
         </div>
     </div>
 
@@ -710,6 +924,9 @@
             currentChannel = channelName;
             
             updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
+            
+            // Conectar al chat del canal
+            joinChannel(channelName);
             
             // Usar tu Worker para obtener el stream
             getStreamFromWorker(channelName)
@@ -1514,6 +1731,245 @@ function updateChannelsStatus() {
                     '<i class="fas fa-search"></i> Buscar canal' +
                 '</button>';
         }
+
+        // ========== CÓDIGO DEL CHAT ==========
+        var ws = null;
+        var emotes = {};
+        var rooms = {};
+        var MAX_MESSAGES = 100;
+        var pauseRemoval = false;
+        var pauseRemovalTimer = null;
+        var messagesBox = document.getElementById("messages");
+        var scrollBtn = document.getElementById("scrollBottomBtn");
+
+        // Función para conectar al chat de un canal
+        function joinChannel(channelName) {
+            // Cerrar conexión anterior si existe
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+            
+            // Limpiar mensajes anteriores
+            messagesBox.innerHTML = '';
+            
+            // Inicializar WebSocket
+            ws = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.6.0");
+            
+            ws.onopen = function() { 
+                console.log("✅ WebSocket conectado para el chat"); 
+                getChatroomId(channelName, function(id) {
+                    rooms[id] = true;
+                    if (ws.readyState === 1) {
+                        ws.send(JSON.stringify({
+                            event: "pusher:subscribe",
+                            data: { auth: "", channel: "chatrooms." + id + ".v2" }
+                        }));
+                        load7TV(channelName);
+                        loadKickEmotes(channelName);
+                        console.log("📡 Conectado al chat de " + channelName);
+                    }
+                });
+            };
+            
+            ws.onerror = function() { console.log("❌ Error WebSocket"); };
+            ws.onclose = function(e) { console.log("⚠️ WS cerrado: " + e.code); };
+            
+            ws.onmessage = function(e) {
+                try {
+                    var data = JSON.parse(e.data);
+                    if (!data.data) return;
+                    var messageData = JSON.parse(data.data);
+                    if (messageData.sender && messageData.content) {
+                        addMsg(messageData.sender.username, messageData.content);
+                    }
+                } catch(e) {
+                    // Error silencioso
+                }
+            };
+        }
+
+        // ===== 7TV GLOBAL =====
+        var xhrGlobal = new XMLHttpRequest();
+        xhrGlobal.open("GET", "https://7tv.io/v3/emote-sets/global");
+        xhrGlobal.onload = function() {
+            if (xhrGlobal.status === 200) {
+                var data = JSON.parse(xhrGlobal.responseText);
+                for (var i = 0; i < data.emotes.length; i++) {
+                    var emote = data.emotes[i];
+                    emotes[emote.name] = "https:" + emote.data.host.url + "/3x";
+                }
+                console.log("🌍 7TV Global OK");
+            }
+        };
+        xhrGlobal.send();
+
+        // ===== 7TV CANAL =====
+        function load7TV(name) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://7tv.io/v3/users/kick/" + name);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.emote_set && data.emote_set.emotes) {
+                            for (var i = 0; i < data.emote_set.emotes.length; i++) {
+                                var emote = data.emote_set.emotes[i];
+                                emotes[emote.name] = "https:" + emote.data.host.url + "/3x." + emote.data.host.files[0].format;
+                            }
+                            console.log("🎭 7TV canal OK");
+                        }
+                    } catch (e) {
+                        console.log("⚠️ Error 7TV canal");
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // ===== EMOTES KICK =====
+        function loadKickEmotes(name) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://kick.com/emotes/" + name);
+            xhr.onload = function() {
+                console.log("🔍 Emotes Kick status " + xhr.status);
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var count = 0;
+                        for (var i = 0; i < data.length; i++) {
+                            var section = data[i];
+                            if (section.emotes) {
+                                for (var j = 0; j < section.emotes.length; j++) {
+                                    var emote = section.emotes[j];
+                                    emotes[emote.name] = "https://files.kick.com/emotes/" + emote.id + "/fullsize";
+                                    count++;
+                                }
+                            }
+                        }
+                        console.log(count ? "✅ Kick emotes " + count : "⚠️ No emotes Kick");
+                    } catch (e) {
+                        console.log("❌ Error Kick emotes");
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // ===== GET CHATROOM ID =====
+        function getChatroomId(name, cb) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://kick.com/api/v2/channels/" + name);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var id = data.chatroom && data.chatroom.id;
+                        if (id) {
+                            cb(id);
+                        } else {
+                            console.log("⚠️ Sin chatroom");
+                        }
+                    } catch (e) {
+                        console.log("❌ Error API canal");
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // ===== PARSE EMOTES =====
+        function parseEmotes(text) {
+            return text.replace(/\[emote:\d+:(.+?)\]/g, function(match, name) {
+                return emotes[name] ? "<img class='chat-emote' src='" + emotes[name] + "'>" : name;
+            });
+        }
+
+        // ===== NAME COLOR - PALETA VIBRANTE Y PASTEL =====
+        function nameColor(n) {
+            var hash = 0;
+            for (var i = 0; i < n.length; i++) {
+                hash = n.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            // Paleta mixta de colores vibrantes y pasteles
+            var vibrantColors = [
+                // Colores vibrantes originales
+                "hsl(0, 100%, 55%)",     // Rojo puro intenso
+                "hsl(0, 100%, 65%)",     // Rojo vibrante
+                "hsl(0, 95%, 50%)",      // Rojo profundo
+                "hsl(30, 100%, 65%)",    // Naranja fuerte
+                "hsl(60, 100%, 65%)",    // Amarillo brillante
+                "hsl(120, 80%, 65%)",    // Verde vivo
+                "hsl(142, 84%, 42%)",    // Verde Kick oficial
+                "hsl(180, 80%, 65%)",    // Cyan brillante
+                "hsl(240, 80%, 70%)",    // Azul eléctrico
+                "hsl(300, 80%, 70%)",    // Rosa neón
+                "hsl(330, 100%, 70%)",   // Rosa fucsia
+                "hsl(45, 100%, 65%)",    // Dorado
+                "hsl(150, 80%, 60%)",    // Verde esmeralda
+                
+                // Nuevos colores pastele suaves
+                "hsl(350, 85%, 75%)",    // Rosa pastel
+                "hsl(30, 85%, 75%)",     // Melocotón pastel
+                "hsl(120, 70%, 75%)",    // Verde pastel    
+                "hsl(240, 70%, 80%)",    // Azul pastel
+                "hsl(270, 70%, 80%)",    // Lila pastel
+                 
+                // Colores pastele más intensos
+                
+                "hsl(80, 80%, 75%)",     // Lima pastel
+                "hsl(160, 75%, 75%)",    // Verde menta
+                "hsl(220, 100%, 60%)",    // Azul intenso   
+                "hsl(50, 90%, 80%)",     // Amarillo crema    
+            ];
+            
+            return vibrantColors[Math.abs(hash) % vibrantColors.length];
+        }
+
+        // ===== SCROLL EVENT =====
+        messagesBox.addEventListener("scroll", function() {
+            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
+            if (!atBottom) {
+                pauseRemoval = true;
+                scrollBtn.style.display = "flex";
+                clearTimeout(pauseRemovalTimer);
+                pauseRemovalTimer = setTimeout(function() { 
+                    pauseRemoval = false; 
+                }, 60000);
+            } else {
+                scrollBtn.style.display = "none";
+            }
+        });
+
+        // ===== ADD MSG =====
+        function addMsg(user, text) {
+            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
+            
+            var msgElement = document.createElement("div");
+            msgElement.className = "msg";
+            var color = nameColor(user);
+            var parsedText = parseEmotes(text);
+
+            msgElement.innerHTML = "<span class='username' style='color:" + color + "'>" + user + "</span><span class='colon'>:</span> <span>" + parsedText + "</span>";
+            messagesBox.appendChild(msgElement);
+
+            if (!pauseRemoval) {
+                while (messagesBox.children.length > MAX_MESSAGES) {
+                    messagesBox.removeChild(messagesBox.firstChild);
+                }
+            }
+
+            if (atBottom) {
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+                scrollBtn.style.display = "none";
+            }
+        }
+
+        // ===== BOTON SCROLL =====
+        scrollBtn.onclick = function() {
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+            scrollBtn.style.display = "none";
+        };
 
         // Cargar al iniciar
         document.addEventListener('DOMContentLoaded', function() {
