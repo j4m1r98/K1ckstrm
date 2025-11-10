@@ -83,7 +83,23 @@
             overflow-y: auto;
             box-sizing: border-box;
             min-width: 0;
+            /* Ocultar scrollbar */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
         }
+        
+        .center-column::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .success { background: #1a3c1a; color: #4CAF50; }
+        .error { background: #3c1a1a; color: #f44336; }
+        .loading { background: #1a1a3c; color: #2196F3; }
         
         .video-container {
             position: relative;
@@ -167,15 +183,6 @@
             background: #7a52c4;
         }
              
-        .status { 
-            padding: 10px; 
-            margin: 10px 0; 
-            border-radius: 4px; 
-        }
-        .success { background: #1a3c1a; color: #4CAF50; }
-        .error { background: #3c1a1a; color: #f44336; }
-        .loading { background: #1a1a3c; color: #2196F3; }
-        
         select, button, input { 
             padding: 8px 12px; 
             margin: 5px; 
@@ -248,6 +255,7 @@
             padding: 15px; 
             background: #1a1a1a; 
             border-radius: 8px; 
+            transition: opacity 0.3s ease;
         }
         .channel-main-info {
             display: flex;
@@ -550,11 +558,40 @@
             padding: 12px 0;
             min-width: 0;
             min-height: 0;
+            /* Ocultar scrollbar por defecto */
+            overflow: hidden;
         }
         
         #messages {
             flex: 1; 
-            overflow: auto;    
+            overflow: auto;
+            /* Ocultar scrollbar por defecto */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+            padding-right: 5px;
+        }
+        
+        #messages::-webkit-scrollbar {
+            width: 6px;
+            display: none; /* Chrome, Safari, Opera - oculto por defecto */
+        }
+        
+        #messages:hover::-webkit-scrollbar {
+            display: block; /* Mostrar al hacer hover */
+        }
+        
+        #messages::-webkit-scrollbar-track {
+            background: #161b22;
+            border-radius: 3px;
+        }
+        
+        #messages::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+        
+        #messages::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
         }
 
         /* Mensajes */
@@ -684,8 +721,39 @@
                 width: 100%;
             }
             
+            .left-column {
+                order: 1;
+            }
+            
+            .center-column {
+                order: 2;
+                padding: 10px;
+            }
+            
             .right-column {
-                height: 50vh;
+                order: 3;
+                height: 40vh; /* Altura fija para el chat en móvil */
+            }
+            
+            .channels-list {
+                order: 4;
+            }
+            
+            .channel-info {
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: rgba(26, 26, 26, 0.9);
+                z-index: 10;
+                margin: 0;
+                border-radius: 0 0 8px 8px;
+            }
+            
+            .channel-info.show {
+                opacity: 1;
             }
             
             .offline-placeholder {
@@ -751,13 +819,13 @@
                     </div>
                 </div>
             </div>
-            
-            <div id="status" class="status">Selecciona un canal para comenzar</div>
         </div>
         
         <!-- Columna central - Video y canales -->
         <div class="center-column">
-            <div class="video-container">
+            <div id="status" class="status">Selecciona un canal para comenzar</div>
+            
+            <div class="video-container" id="videoContainer">
                 <video id="videoPlayer" controls style="display: none;"></video>
                 <div id="offlinePlaceholder" class="offline-placeholder">
                     <i class="fas fa-play-circle offline-icon"></i>
@@ -806,13 +874,14 @@
         var currentChannel = '';
         var WORKER_URL = 'https://strmkckchnnl.j4m1r-98.workers.dev';
         var currentLevels = [];
+        var channelInfoTimeout = null;
         
         // Lista de canales guardados
         var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
         // Función para hacer scroll suave al contenedor de video
         function scrollToVideoContainer() {
-            const videoContainer = document.querySelector('.status');
+            const videoContainer = document.querySelector('.video-container');
             if (videoContainer) {
                 videoContainer.scrollIntoView({ 
                     behavior: 'smooth',
@@ -1425,6 +1494,16 @@
                             '</div>' +
                         '</div>' +
                     '</div>';
+                    
+                // En móvil, mostrar la información del canal temporalmente
+                if (window.innerWidth <= 768) {
+                    container.classList.add('show');
+                    // Programar para ocultar después de 5 segundos
+                    clearTimeout(channelInfoTimeout);
+                    channelInfoTimeout = setTimeout(function() {
+                        container.classList.remove('show');
+                    }, 5000);
+                }
             } else {
                 container.innerHTML = '<p>Información del canal no disponible</p>';
             }
@@ -1451,6 +1530,16 @@
                             '</div>' +
                         '</div>' +
                     '</div>';
+                    
+                // En móvil, mostrar la información del canal temporalmente
+                if (window.innerWidth <= 768) {
+                    container.classList.add('show');
+                    // Programar para ocultar después de 5 segundos
+                    clearTimeout(channelInfoTimeout);
+                    channelInfoTimeout = setTimeout(function() {
+                        container.classList.remove('show');
+                    }, 5000);
+                }
             } else {
                 container.innerHTML = '<p>Información del canal no disponible</p>';
             }
@@ -1992,12 +2081,35 @@ function updateChannelsStatus() {
                 }
             });
             
+            // Mostrar información del canal al hacer hover o toque en el video en móvil
+            var videoContainer = document.getElementById('videoContainer');
+            if (videoContainer) {
+                videoContainer.addEventListener('mouseenter', showChannelInfoMobile);
+                videoContainer.addEventListener('touchstart', showChannelInfoMobile);
+                videoContainer.addEventListener('click', showChannelInfoMobile);
+            }
+            
             document.getElementById('channelInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     loadStream();
                 }
             });
         });
+        
+        // Función para mostrar información del canal en móvil
+        function showChannelInfoMobile() {
+            if (window.innerWidth <= 768) {
+                var channelInfo = document.getElementById('channelInfo');
+                if (channelInfo && channelInfo.innerHTML.trim() !== '') {
+                    channelInfo.classList.add('show');
+                    // Programar para ocultar después de 5 segundos
+                    clearTimeout(channelInfoTimeout);
+                    channelInfoTimeout = setTimeout(function() {
+                        channelInfo.classList.remove('show');
+                    }, 5000);
+                }
+            }
+        }
     </script>
 </body>
 </html>
