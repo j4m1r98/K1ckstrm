@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --left-column-width: 220px;
             --right-column-width: 320px;
         }
         
@@ -26,71 +25,71 @@
             width: 100%;
         }
         
-        /* Columna izquierda - Controles */
-        .left-column {
-            width: var(--left-column-width);
-            background: #1a1a1a;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-        
-        .left-column h1 {
-            font-size: 18px;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: white;
-        }
-        
-        .left-column h1 i {
-            margin-right: 8px;
-            color white;
-        }
-        
-        .controls { 
-            margin-bottom: 15px;
-        }
-        
-        .controls input {
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-        
-        .controls button {
-            width: 100%;
-            margin: 5px 0;
-            box-sizing: border-box;
-        }
-        
-        .quality-selector {
-            margin: 10px 0;
-        }
-        
-        .quality-btn {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
         /* Columna central - Video y canales */
         .center-column {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 15px;
+            padding: 15px 15px 15px 0;
             overflow-y: auto;
             box-sizing: border-box;
             min-width: 0;
-            /* Ocultar scrollbar */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         
         .center-column::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none;
         }
+        
+        /* Título centrado */
+        .title-container {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        
+        .title-container h1 {
+            font-size: 24px;
+            margin: 0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .title-container h1 i {
+            margin-right: 12px;
+            color: #6441a5;
+            font-size: 28px;
+        }
+        
+        /* Controles */
+        .controls-container {           
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls { 
+            display: flex;    
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls input {
+            box-sizing: border-box;
+            min-width: 150px;
+        }
+                      
+        .quality-selector {
+            position: relative;
+            display: inline-block;
+        }               
         
         .status { 
             padding: 10px; 
@@ -105,9 +104,8 @@
             position: relative;
             width: 100%;
             height: 0;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background: black;
-            border-radius: 8px;
+            padding-top: 56.25%;
+            background: black;           
             margin-bottom: 15px;
         }
         
@@ -117,8 +115,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: black; 
-            border-radius: 8px;
+            background: black;            
         }
         
         .offline-placeholder {
@@ -127,8 +124,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #1a1a1a;
-            border-radius: 8px;
+            background: #1a1a1a;            
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -185,7 +181,7 @@
              
         select, button, input { 
             padding: 8px 12px; 
-            margin: 5px; 
+            margin: 5px;
             background: #333; 
             color: white; 
             border: 1px solid #555; 
@@ -197,11 +193,6 @@
         }
         button:hover { background: #7a52c4; }
         
-        .quality-selector { 
-            margin: 10px 0; 
-            position: relative;
-            display: inline-block;
-        }
         .quality-btn {
             background: #6441a5;
             color: white;
@@ -250,7 +241,28 @@
             color: white;
         }
         
+        /* Botón de pantalla completa */
+        .fullscreen-btn {
+            background: #6441a5;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fullscreen-btn i {
+            margin-right: 8px;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #7a52c4;
+        }
+        
         .channel-info { 
+            display: none;
             margin-bottom: 15px; 
             padding: 15px; 
             background: #1a1a1a; 
@@ -304,7 +316,7 @@
         .channel-name {
             font-size: 18px;
             font-weight: bold;
-            display: Flex;
+            display: flex;
             align-items: center;
             grid-gap: 6px;
             margin-right: 6px;
@@ -492,7 +504,7 @@
         }
         .channel-tab-wrapper { 
             position: relative; 
-            min-width: 0; /* Important para flexbox shrinking en TV */
+            min-width: 0;
         }
         .empty-list { 
             text-align: center; 
@@ -507,31 +519,6 @@
             font-size: 20px;  
         } 
  
-/* Fallback para dispositivos que NO soportan grid */
-@supports not (display: grid) {
-
-    .tabs-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-
-        /* Compensamos los márgenes de los hijos */
-        margin-top: -7px;
-        margin-left: -7px;
-    }
-
-    .tabs-container > .channel-tab {
-        flex: 1 1 120px;
-
-        /* márgenes individuales porque margin: no funciona */
-        margin-top: 7px;
-        margin-left: 7px;
-
-        /* No damos margen a derecha/abajo, flex se encarga */
-        box-sizing: border-box;
-    }
-}
-
         /* Columna derecha - Chat */
         .right-column {
             width: var(--right-column-width);
@@ -561,26 +548,24 @@
             padding: 12px 0;
             min-width: 0;
             min-height: 0;
-            /* Ocultar scrollbar por defecto */
             overflow: hidden;
         }
         
         #messages {
             flex: 1; 
             overflow: auto;
-            /* Ocultar scrollbar por defecto */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             padding-right: 5px;
         }
         
         #messages::-webkit-scrollbar {
             width: 6px;
-            display: none; /* Chrome, Safari, Opera - oculto por defecto */
+            display: none;
         }
         
         #messages:hover::-webkit-scrollbar {
-            display: block; /* Mostrar al hacer hover */
+            display: block;
         }
         
         #messages::-webkit-scrollbar-track {
@@ -641,7 +626,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 70%;
+            width: 74%;
             max-width: 400px;
             background: #3A3B40;
             color: #ffffff;
@@ -660,7 +645,7 @@
         
         #scrollBottomBtn i {
             font-size: 16px;
-            margin-right: 6px;
+            margin-right: 8px;
         }
         
         .footer {
@@ -672,10 +657,133 @@
             color: #8b949e
         }
 
+        /* ========== ESTILOS PANTALLA COMPLETA ========== */
+        .fullscreen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            flex-direction: row;
+        }
+        
+        .fullscreen-container.active {
+            display: flex;
+        }
+        
+        .fullscreen-video-section {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+        
+        .fullscreen-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .fullscreen-chat-section {
+            width: var(--right-column-width);
+            background: #0d1117;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .fullscreen-messages-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 0;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+        
+        .fullscreen-messages {
+            flex: 1; 
+            overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-right: 5px;
+        }
+        
+        .fullscreen-messages::-webkit-scrollbar {
+            width: 6px;
+            display: none;
+        }
+        
+        .fullscreen-messages:hover::-webkit-scrollbar {
+            display: block;
+        }
+        
+        .fullscreen-messages::-webkit-scrollbar-track {
+            background: #161b22;
+            border-radius: 3px;
+        }
+        
+        .fullscreen-messages::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+        
+        .fullscreen-messages::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+        
+        .fullscreen-scroll-bottom-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 74%;
+            max-width: 400px;
+            background: #3A3B40;
+            color: #ffffff;
+            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+        }
+        
+        .fullscreen-exit-btn {
+            position: absolute;
+            top: 15px;
+            right: calc(var(--right-column-width) + 15px);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fullscreen-exit-btn i {
+            margin-right: 8px;
+        }
+        
+        .fullscreen-exit-btn:hover {
+            background: rgba(0,0,0,0.9);
+        }
+
         /* Responsive para tablets */
         @media (max-width: 1024px) {
             :root {
-                --left-column-width: 200px;
                 --right-column-width: 280px;
             }
             
@@ -714,53 +822,53 @@
 
         /* Responsive para móviles */
         @media (max-width: 768px) {
+            :root {
+                --right-column-width: 100% !important;
+            }
+
             .app-container {
                 flex-direction: column;
-                height: auto;
+                height: 100vh;
                 overflow-y: auto;
             }
             
-            .left-column, .center-column, .right-column {
+            .center-column, .right-column {
                 width: 100%;
-            }
-            
-            .left-column {
-                order: 1;
+                padding: 0;                       
             }
             
             .center-column {
-                order: 2;
-                padding: 10px;
+                overflow-y: visible;
+                min-height: auto;
             }
             
             .right-column {
-                order: 3;
-                height: 40vh; /* Altura fija para el chat en móvil */
+                height: 70vh;
+                overflow-y: auto;                
+                flex-shrink: 0;
             }
             
-            .channels-list {
-                order: 4;
+            .channels-list {                
+                overflow-y: visible;
+                border-radius: 0;
+                margin-bottom: 0;
             }
             
             .channel-info {
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: rgba(26, 26, 26, 0.9);
-                z-index: 10;
-                margin: 0;
-                border-radius: 0 0 8px 8px;
+                border-radius: 0;
+            }            
+                       
+            .controls-container {
+                border-radius: 0;
             }
             
-            .channel-info.show {
-                opacity: 1;
+            .status {
+                border-radius: 0;              
             }
             
             .offline-placeholder {
                 padding: 15px;
+                border-radius: 0;
             }
     
             .offline-icon {
@@ -796,36 +904,143 @@
             .channel-tab-wrapper .delete-btn {
                 display: flex;
             }
+            
+            .title-container h1 {
+                font-size: 20px;
+            }
+            
+            .title-container h1 i {
+                font-size: 24px;
+                margin-right: 10px;
+            }
+            
+            .controls-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .controls input,
+            .controls button {
+                width: 100%;
+            }
+
+            /* HACE QUE LOS CONTENEDORES PRINCIPALES SE COMPORTEN COMO SI NO EXISTIERAN */
+           .center-column, .right-column {
+                display: contents; /* Los hijos directos se vuelven hijos del app-container */
+            }
+    
+            /* AHORA REORDENA LOS ELEMENTOS COMO SI ESTUVIERAN TODOS EN EL MISMO CONTENEDOR */
+            .title-container { 
+                order: 1; 
+            }
+
+            .controls-container { 
+                order: 2; 
+            }
+
+            #status { 
+                order: 3; 
+            }
+
+            .video-container { 
+                order: 4; 
+            }
+
+            #channelInfo { 
+                order: 5; 
+            }
+            
+            .right-column > * { 
+                order: 6; 
+                margin-bottom: 15px;                
+            }
+
+            /* ALTURA ESPECÍFICA PARA EL CONTENEDOR DE MENSAJES */
+            #messages-container {
+                height: 70vh !important;
+                min-height: 70vh;
+                max-height: 70vh;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* ALTURA PARA EL CONTENEDOR DE MENSAJES EN SÍ */
+            #messages {
+                flex: 1;
+                overflow-y: auto;
+                height: 100%;
+            }
+
+            .channels-list { 
+                order: 7; 
+            }
+
+            /* Pantalla completa en móviles */
+            .fullscreen-container {
+                flex-direction: column;
+                height: 100vh;
+            }
+            
+            .fullscreen-video-section {               
+                position: relative;
+                width: 100%;
+                height: 0;
+                padding-top: 56.25%;
+                flex-shrink: 0;               
+            }
+            
+            .fullscreen-chat-section {
+                flex-grow: 1;
+                width: 100%; 
+                overflow: auto;             
+            }
+            
+            .fullscreen-exit-btn {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Contenedor principal normal -->
     <div class="app-container">
-        <!-- Columna izquierda - Controles -->
-        <div class="left-column">
-            <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
-            
-            <div class="controls">
-                <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
-                <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
-                <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
-                <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
-                <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
-                
-                <!-- Selector de calidad -->
-                <div class="quality-selector">
-                    <button class="quality-btn" id="qualityBtn">
-                        <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="quality-dropdown" id="qualityDropdown">
-                        <!-- Las opciones de calidad se agregarán aquí dinámicamente -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- Columna central - Video y canales -->
         <div class="center-column">
+            <div class="title-container">
+                <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
+            </div>
+            
+            <div class="controls-container">
+                <div class="controls">
+                    <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
+                    <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
+                    <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
+                    <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                    <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
+                    
+                    <div class="quality-selector">
+                        <button class="quality-btn" id="qualityBtn">
+                            <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="quality-dropdown" id="qualityDropdown">
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de pantalla completa -->
+                    <button class="fullscreen-btn" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand"></i> Pantalla Completa
+                    </button>
+                </div>
+            </div>
+            
             <div id="status" class="status">Selecciona un canal para comenzar</div>
             
             <div class="video-container" id="videoContainer">
@@ -843,7 +1058,6 @@
             
             <div id="channelInfo" class="channel-info"></div>
             
-            <!-- Lista de canales favoritos -->
             <div class="channels-list" id="channelsList">
                 <div class="channels-header">
                     <h2><i class="fas fa-list"></i> Canales Guardados</h2>
@@ -852,7 +1066,6 @@
                     </button>
                 </div>
                 <div class="tabs-container" id="tabsContainer">
-                    <!-- Los tabs de canales se generarán aquí dinámicamente -->
                 </div>
             </div>
         </div>
@@ -868,6 +1081,26 @@
         </div>
     </div>
 
+    <!-- Contenedor para pantalla completa -->
+    <div class="fullscreen-container" id="fullscreenContainer">
+        <div class="fullscreen-video-section">
+            <video id="fullscreenVideo" class="fullscreen-video" controls></video>
+            <button class="fullscreen-exit-btn" onclick="toggleFullscreen()">
+                <i class="fas fa-compress"></i> Salir
+            </button>
+        </div>
+        <div class="fullscreen-chat-section">
+            <div class="titulo">Chat</div>
+            <div class="fullscreen-messages-container">
+                <div id="fullscreenMessages" class="fullscreen-messages"></div>
+                <button id="fullscreenScrollBottomBtn" class="fullscreen-scroll-bottom-btn">
+                    <i class="fas fa-pause"></i>chat en pausa, ir al último mensaje
+                </button>
+            </div>
+            <div class="footer">Kick Chat Viewer — Pantalla Completa</div>
+        </div>
+    </div>
+
     <script>
         // Variables globales
         var hls = null;
@@ -875,994 +1108,180 @@
         var isAutoRefresh = false;
         var viewersUpdateInterval = null;
         var currentChannel = '';
-        var currentLevels = [];
-        var channelInfoTimeout = null;
+        var currentLevels = [];       
+        var isFullscreen = false;
+        
+        // Variables del chat
+        var ws = null;
+        var emotes = {};
+        var rooms = {};
+        var MAX_MESSAGES = 40;
+        var pauseRemoval = false;
+        var pauseRemovalTimer = null;
         
         // Lista de canales guardados
         var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
-        // Función para hacer scroll suave al contenedor de video
-        function scrollToVideoContainer() {
-            const centerColumn = document.querySelector('.center-column');
-            if (centerColumn) {
-                centerColumn.scrollTo({ 
-                    top: 0,
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
-
-        // Función para generar el verified badge si el canal está verificado
-        function getVerifiedBadge(verified) {
-            if (verified) {
-                return '<img src="https://raw.githubusercontent.com/j4m1r98/Utilidades/refs/heads/main/verified-badge.svg" class="verified-badge" alt="Verified">';
-            }
-            return '';
-        }
-
-        // Función makeRequest
-        function makeRequest(url) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            resolve(data);
-                        } catch (e) {
-                            reject(new Error('Error parsing JSON'));
-                        }
-                    } else {
-                        reject(new Error('HTTP error: ' + xhr.status));
-                    }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network error'));
-                };
-                xhr.send();
-            });
-        }
-
-        // Función getLastLiveText
-        function getLastLiveText(username) {
-            return makeRequest('https://kick.com/api/v1/channels/' + username)
-                .then(function(data) {
-                    if (Array.isArray(data.previous_livestreams) && data.previous_livestreams.length > 0) {
-                        var last = data.previous_livestreams[0];
-                        var startMs = Date.parse((last.created_at || '') + "Z");
-                        var durMs = Number(last.duration);
-                        if (!isNaN(startMs) && !isNaN(durMs) && durMs > 0) {
-                            var endMs = startMs + durMs;
-                            var agoMs = Date.now() - endMs;
-                            if (agoMs > 0) {
-                                var totalSeconds = Math.floor(agoMs / 1000);
-                                if (totalSeconds < 60) {
-                                    return "menos de un min";
-                                }
-                                var totalMinutes = Math.floor(totalSeconds / 60);
-                                var totalHours = Math.floor(totalMinutes / 60);
-                                var days = Math.floor(totalHours / 24);
-                                var hours = totalHours % 24;
-                                var minutes = totalMinutes % 60;
-                                var parts = [];
-                                if (days > 0) {
-                                    parts.push(days + ' día' + (days !== 1 ? 's' : ''));
-                                }
-                                if (hours > 0) {
-                                    parts.push(hours + ' h');
-                                }
-                                if (minutes > 0 && days === 0) {
-                                    parts.push(minutes + ' min');
-                                }
-                                if (parts.length === 0) {
-                                    return "menos de un min";
-                                }
-                                return 'hace ' + parts.join(' ');
-                            }
-                        }
-                    }
-                    return "Nunca ha estado en vivo";
-                })
-                .catch(function(e) {
-                    console.warn('Error al obtener último live de ' + username + ':', e);
-                    return "No disponible";
-                });
-        }
-
-        // Nueva función para obtener datos de la API directa de Kick
-        function getStreamFromKickAPI(channel) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://kick.com/api/v2/channels/' + encodeURIComponent(channel), true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            
-                            // Mapear los datos según la estructura requerida
-                            var streamData = {
-                                playback_url: data.playback_url,
-                                channel_info: {
-                                    name: data.user ? data.user.username : channel,
-                                    title: data.livestream ? data.livestream.session_title : '',
-                                    profile_pic: data.user ? data.user.profile_pic : '',
-                                    is_live: data.livestream ? data.livestream.is_live : false,
-                                    viewer_count: data.livestream ? data.livestream.viewer_count : 0,
-                                    verified: data.verified || false
-                                }
-                            };
-                            
-                            resolve(streamData);
-                        } catch (e) {
-                            reject(new Error('Error parsing JSON from Kick API'));
-                        }
-                    } else {
-                        reject(new Error('Error del Kick API: ' + xhr.status));
-                    }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network error when connecting to Kick API'));
-                };
-                xhr.send();
-            });
-        }
-
-        function loadStream() {
-            var channelName = document.getElementById('channelInput').value.trim();
-            if (!channelName) {
-                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
-                return;
-            }
-            
-            // Limpiar intervalos anteriores y cualquier reproducción en curso
-            clearInterval(viewersUpdateInterval);
-            
-            // Limpiar el video completamente antes de empezar
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            video.pause();
-            video.src = '';
-            video.load();
-            
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
-            
-            currentChannel = channelName;
-            scrollToVideoContainer();
-
-            updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
-            
-            // Conectar al chat del canal
-            joinChannel(channelName);
-            
-            // Usar la API directa de Kick para obtener el stream
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData) {
-                        throw new Error('No se pudo obtener información del canal');
-                    }
-                    
-                    // Verificar si el canal está online - SI ESTÁ OFFLINE, SALIR INMEDIATAMENTE
-                    if (!streamData.channel_info.is_live) {
-                        return showOfflinePlaceholder(streamData.channel_info)
-                            .then(function() {
-                                updateStatus('<i class="fas fa-user-slash"></i> El canal está offline', 'error');
-                            });
-                    }
-                    
-                    if (!streamData.playback_url) {
-                        throw new Error('No se pudo obtener el stream del Kick API');
-                    }
-                    
-                    console.log('URL del stream obtenida:', streamData.playback_url);
-                    updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
-                    
-                    // PRIMERO: Intentar con el enlace directo SIN proxy
-                    return attemptDirectPlay(streamData.playback_url)
-                        .then(function(success) {
-                            if (success) {
-                                // Éxito con enlace directo
-                                updateChannelInfo(streamData.channel_info);
-                                startViewersUpdate(channelName);
-                                return;
-                            }
-                            
-                            // SEGUNDO: Si falla el directo, intentar con proxies
-                            updateStatus('<i class="fas fa-redo"></i> Falló enlace directo, probando con proxy...', 'loading');
-                            return getProxiedStreamUrl(streamData.playback_url)
-                                .then(function(proxiedStreamUrl) {
-                                    playStream(proxiedStreamUrl);
-                                    updateChannelInfo(streamData.channel_info);
-                                    startViewersUpdate(channelName);
-                                });
-                        });
-                })
-                .catch(function(error) {
-                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
-                    console.error('Error:', error);
-                });
-        }
-
-        // Nueva función para intentar reproducción directa
-        function attemptDirectPlay(streamUrl) {
-            return new Promise(function(resolve) {
-                var video = document.getElementById('videoPlayer');
-                var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-                
-                // Mostrar video y ocultar placeholder
-                video.style.display = 'block';
-                offlinePlaceholder.style.display = 'none';
-                
-                // Detener HLS anterior
-                if (hls) {
-                    hls.destroy();
-                    hls = null;
-                }
-                
-                console.log('Intentando reproducción directa:', streamUrl);
-                
-                // Limpiar fuente anterior
-                video.src = '';
-                video.load();
-                
-                var directPlaySuccess = false;
-                var timeoutId;
-                
-                function cleanup() {
-                    clearTimeout(timeoutId);
-                    video.removeEventListener('loadedmetadata', onSuccess);
-                    video.removeEventListener('error', onError);
-                    video.removeEventListener('canplay', onSuccess);
-                }
-                
-                function onSuccess() {
-                    if (directPlaySuccess) return;
-                    directPlaySuccess = true;
-                    cleanup();
-                    console.log('Reproducción directa exitosa');
-                    updateStatus('<i class="fas fa-play"></i> Reproduciendo (directo)', 'success');
-                    resolve(true);
-                }
-                
-                function onError() {
-                    if (directPlaySuccess) return;
-                    cleanup();
-                    console.log('Reproducción directa falló');
-                    resolve(false);
-                }
-                
-                // Configurar event listeners
-                video.addEventListener('loadedmetadata', onSuccess);
-                video.addEventListener('canplay', onSuccess);
-                video.addEventListener('error', onError);
-                
-                // Timeout después de 10 segundos
-                timeoutId = setTimeout(function() {
-                    if (!directPlaySuccess) {
-                        console.log('Timeout en reproducción directa');
-                        onError();
-                    }
-                }, 10000);
-                
-                // Intentar reproducir con HLS.js primero
-                if (window.Hls && Hls.isSupported()) {
-                    hls = new Hls({
-                        enableWorker: false,
-                        lowLatencyMode: true,
-                        backBufferLength: 90
-                    });
-                    
-                    hls.loadSource(streamUrl);
-                    hls.attachMedia(video);
-                    
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        console.log('Manifiesto HLS cargado correctamente (directo)');
-                        updateQualityDropdown();
-                        video.play().catch(function(e) {
-                            console.log('Auto-play bloqueado (directo):', e);
-                        });
-                        onSuccess();
-                    });
-                    
-                    hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
-                        console.log('Calidad cargada (directo)');
-                    });
-                    
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        console.error('Error HLS (directo):', data);
-                        if (data.fatal && !directPlaySuccess) {
-                            hls.destroy();
-                            onError();
-                        }
-                    });
-                    
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari native HLS support
-                    console.log('Usando HLS nativo (directo)');
-                    video.src = streamUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        console.log('Metadata cargada (directo)');
-                        video.play().catch(function(e) {
-                            console.log('Auto-play bloqueado (directo):', e);
-                        });
-                    });
-                } else {
-                    console.log('HLS no soportado, fallando a proxy');
-                    onError();
-                }
-            });
-        }
-
-        function getProxiedStreamUrl(streamUrl) {
-            // Usar un proxy CORS público para evitar bloqueos
-            var proxyUrls = [
-                'https://procsyurlstrm.j4m1r-98.workers.dev/?url=' + encodeURIComponent(streamUrl),
-                'https://corsproxy.io/?' + encodeURIComponent(streamUrl),
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(streamUrl),
-                'https://cors-anywhere.herokuapp.com/' + streamUrl
-            ];
-            
-            // Probar cada proxy secuencialmente
-            function tryProxy(index) {
-                if (index >= proxyUrls.length) {
-                    return Promise.reject(new Error('No se pudo encontrar un proxy funcionando'));
-                }
-                
-                var proxyUrl = proxyUrls[index];
-                console.log('Probando proxy:', proxyUrl);
-                
-                return testProxyUrl(proxyUrl)
-                    .then(function() {
-                        console.log('Proxy funcionando:', proxyUrl);
-                        return proxyUrl;
-                    })
-                    .catch(function(error) {
-                        console.log('Proxy falló:', proxyUrl, error);
-                        return tryProxy(index + 1);
-                    });
-            }
-            
-            return tryProxy(0);
-        }
-
-        function testProxyUrl(proxyUrl) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('HEAD', proxyUrl, true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(true);
-                    } else {
-                        reject(new Error('HTTP error: ' + xhr.status));
-                    }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network error'));
-                };
-                xhr.send();
-            });
-        }
-
-        function playStream(url) {
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            
-            // Mostrar video y ocultar placeholder
-            video.style.display = 'block';
-            offlinePlaceholder.style.display = 'none';
-            
-            // Detener HLS anterior
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
-            
-            console.log('Reproduciendo a través de proxy:', url);
-            
-            // Limpiar fuente anterior
-            video.src = '';
-            video.load();
-            
-            if (window.Hls && Hls.isSupported()) {
-                hls = new Hls({
-                    enableWorker: false,
-                    lowLatencyMode: true,
-                    backBufferLength: 90
-                });
-                
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('Manifiesto HLS cargado correctamente (proxy)');
-                    
-                    // Obtener las calidades disponibles y actualizar el dropdown
-                    updateQualityDropdown();
-                    
-                    video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado (proxy):', e);
-                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
-                    });
-                });
-                
-                hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
-                    console.log('Calidad cargada (proxy)');
-                    updateStatus('<i class="fas fa-play"></i> Reproduciendo (proxy)', 'success');
-                });
-                
-                hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('Error HLS (proxy):', data);
-                    
-                    if (data.fatal) {
-                        switch(data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log('Error de red, intentando recuperar...');
-                                updateStatus('<i class="fas fa-redo"></i> Error de red, reconectando...', 'error');
-                                setTimeout(function() {
-                                    if (hls) hls.startLoad();
-                                }, 2000);
-                                break;
-                            default:
-                                console.log('Error fatal, recargando stream...');
-                                updateStatus('<i class="fas fa-exclamation-circle"></i> Error del stream, recargando...', 'error');
-                                setTimeout(loadStream, 3000);
-                                break;
-                        }
-                    }
-                });
-                
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari native HLS support
-                console.log('Usando HLS nativo (proxy)');
-                video.src = url;
-                video.addEventListener('loadedmetadata', function() {
-                    console.log('Metadata cargada (proxy)');
-                    video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado (proxy):', e);
-                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
-                    });
-                });
+        // ========== PANTALLA COMPLETA ==========
+        function toggleFullscreen() {
+            if (isFullscreen) {
+                exitFullscreen();
             } else {
-                updateStatus('<i class="fas fa-exclamation-circle"></i> HLS no soportado en este navegador', 'error');
-                return;
+                enterFullscreen();
             }
-            
-            // Event listeners para el elemento video - SOLO cuando el canal está online
-            video.addEventListener('waiting', function() {
-                updateStatus('<i class="fas fa-hourglass-half"></i> Buffering...', 'loading');
-            });
-            
-            video.addEventListener('playing', function() {
-                updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
-            });
         }
 
-        // Función para actualizar el dropdown de calidades
-        function updateQualityDropdown() {
-            if (!hls || !hls.levels || hls.levels.length === 0) {
-                console.log('No hay niveles de calidad disponibles');
-                return;
-            }
+        function enterFullscreen() {
+            var videoPlayer = document.getElementById('videoPlayer');
+            var fullscreenVideo = document.getElementById('fullscreenVideo');
+            var fullscreenContainer = document.getElementById('fullscreenContainer');
             
-            var qualityDropdown = document.getElementById('qualityDropdown');
-            currentLevels = hls.levels;
-            
-            // Limpiar dropdown
-            qualityDropdown.innerHTML = '';
-            
-            // Agregar opción "Auto"
-            var autoOption = document.createElement('div');
-            autoOption.className = 'quality-option';
-            autoOption.textContent = 'Auto';
-            autoOption.setAttribute('data-level', '-1');
-            if (hls.currentLevel === -1) {
-                autoOption.classList.add('active');
-            }
-            autoOption.onclick = function() {
-                changeQuality(-1);
-            };
-            qualityDropdown.appendChild(autoOption);
-            
-            // Agregar opciones para cada calidad disponible
-            for (var i = 0; i < currentLevels.length; i++) {
-                var level = currentLevels[i];
-                var label = getQualityLabel(level);
+            if (videoPlayer.src && videoPlayer.src !== '') {
+                fullscreenVideo.src = videoPlayer.src;
                 
-                var option = document.createElement('div');
-                option.className = 'quality-option';
-                option.textContent = label;
-                option.setAttribute('data-level', i.toString());
-                if (hls.currentLevel === i) {
-                    option.classList.add('active');
+                if (hls && hls.media) {
+                    hls.detachMedia();
+                    hls.attachMedia(fullscreenVideo);
                 }
-                option.onclick = (function(levelIndex) {
-                    return function() {
-                        changeQuality(levelIndex);
-                    };
-                })(i);
                 
-                qualityDropdown.appendChild(option);
-            }
-        }
-
-        // Función para obtener la etiqueta de calidad
-        function getQualityLabel(level) {
-            if (level.height) {
-                return level.height + 'p';
-            } else if (level.name) {
-                return level.name;
-            } else if (level.bitrate) {
-                return Math.round(level.bitrate / 1000) + ' kbps';
-            } else {
-                return 'Nivel ' + level.id;
-            }
-        }
-
-        // Función para cambiar la calidad
-        function changeQuality(levelIndex) {
-            if (!hls) return;
-            
-            hls.currentLevel = levelIndex;
-            
-            // Actualizar clases activas en el dropdown
-            var options = document.querySelectorAll('.quality-option');
-            for (var i = 0; i < options.length; i++) {
-                options[i].classList.remove('active');
-                if (parseInt(options[i].getAttribute('data-level')) === levelIndex) {
-                    options[i].classList.add('active');
-                }
-            }
-            
-            // Cerrar el dropdown
-            document.getElementById('qualityDropdown').classList.remove('show');
-            
-            console.log('Calidad cambiada a nivel: ' + levelIndex);
-        }
-
-        // Función para mostrar/ocultar el dropdown de calidad
-        function toggleQualityDropdown() {
-            var dropdown = document.getElementById('qualityDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        function showOfflinePlaceholder(channelInfo) {
-            // Detener cualquier reproducción en curso
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            
-            video.pause();
-            video.src = '';
-            video.load();
-            
-            // Ocultar video y mostrar placeholder
-            video.style.display = 'none';
-            offlinePlaceholder.style.display = 'flex';
-            
-            // Limpiar intervalos de actualización
-            clearInterval(viewersUpdateInterval);
-            
-            // Obtener información del último stream usando la misma función
-            return getLastLiveText(channelInfo.name)
-                .then(function(lastLiveText) {
-                    // Actualizar información del canal
-                    updateOfflineChannelInfo(channelInfo, lastLiveText);
-
-                    // Actualizar el placeholder con toda la información
-            offlinePlaceholder.innerHTML = 
-                '<i class="fas fa-user-slash offline-icon"></i>' +
-                '<div class="offline-channel-name">' + (channelInfo.name || 'Canal') + '</div>' +
-                '<div class="offline-status">Está offline en este momento</div>' +
-                '<div class="offline-last-time">Última vez: ' + lastLiveText + '</div>' +
-                '<button class="offline-btn" onclick="window.open(\'https://kick.com/' + channelInfo.name + '\', \'_blank\')">' +
-                    '<i class="fas fa-external-link-alt"></i> Visitar canal' +
-                '</button>';
-                });
-        }
-
-        function refreshStream() {
-            console.log('Actualización manual del stream');
-            loadStream();
-        }
-
-        function autoRefreshToggle() {
-            var btn = document.getElementById('autoRefreshBtn');
-            
-            if (isAutoRefresh) {
-                clearInterval(autoRefreshInterval);
-                isAutoRefresh = false;
-                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: OFF';
-                updateStatus('Auto-refresh desactivado', 'success');
-            } else {
-                autoRefreshInterval = setInterval(refreshStream, 20000); // Cada 20 segundos
-                isAutoRefresh = true;
-                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: ON';
-                updateStatus('Auto-refresh activado (cada 20s)', 'success');
-            }
-        }
-
-        function updateStatus(message, type) {
-            var status = document.getElementById('status');
-            status.innerHTML = message;
-            status.className = 'status ' + type;
-        }
-
-        function updateChannelInfo(info) {
-            var container = document.getElementById('channelInfo');
-            container.style.display = 'block';
-            if (info && info.name) {
-                var profilePic = info.profile_pic ? 
-                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
-                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
+                fullscreenVideo.currentTime = videoPlayer.currentTime;
                 
-                container.innerHTML = 
-                    '<div class="channel-main-info">' +
-                        '<div class="channel-profile-container">' +
-                            profilePic +
-                            '<div class="channel-text-info">' +
-                                '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
-                                    '<div class="channel-viewers">' +
-                                        '<i class="fas fa-users"></i>' +
-                                        '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="channel-title">' + (info.title || 'Sin título') + '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-                    
-                // En móvil, mostrar la información del canal temporalmente
-                if (window.innerWidth <= 768) {
-                    container.classList.add('show');
-                    // Programar para ocultar después de 5 segundos
-                    clearTimeout(channelInfoTimeout);
-                    channelInfoTimeout = setTimeout(function() {
-                        container.classList.remove('show');
-                    }, 5000);
+                if (!videoPlayer.paused) {
+                    fullscreenVideo.play().catch(function(e) {
+                        console.log('Error al reproducir en pantalla completa:', e);
+                    });
                 }
-            } else {
-                container.innerHTML = '<p>Información del canal no disponible</p>';
-            }
-        }
-
-        function updateOfflineChannelInfo(info, lastLiveText) {
-            var container = document.getElementById('channelInfo');
-            container.style.display = 'block';
-            if (info && info.name) {
-                var profilePic = info.profile_pic ? 
-                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
-                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
                 
-                container.innerHTML = 
-                    '<div class="channel-main-info">' +
-                        '<div class="channel-profile-container">' +
-                            profilePic +
-                            '<div class="channel-text-info">' +
-                                '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
-                                                                        
-                                // Viewer count oculto cuando está offline
-                                '</div>' +
-                                '<div class="offline-time">Última vez en vivo ' + lastLiveText + '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-                    
-                // En móvil, mostrar la información del canal temporalmente
-                if (window.innerWidth <= 768) {
-                    container.classList.add('show');
-                    // Programar para ocultar después de 5 segundos
-                    clearTimeout(channelInfoTimeout);
-                    channelInfoTimeout = setTimeout(function() {
-                        container.classList.remove('show');
-                    }, 5000);
-                }
+                fullscreenVideo.style.display = 'block';
             } else {
-                container.innerHTML = '<p>Información del canal no disponible</p>';
-            }
-        }
-
-        // Función para actualizar solo el viewers count
-        function updateViewersCount(channelName) {
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (streamData && streamData.channel_info) {
-                        var viewersCount = streamData.channel_info.viewer_count || 0;
-                        var viewersElement = document.querySelector('.viewers-count');
-                        if (viewersElement) {
-                            viewersElement.textContent = viewersCount;
-                        }
-                        
-                        // Si el canal está offline, detener la actualización
-                        if (!streamData.channel_info.is_live) {
-                            clearInterval(viewersUpdateInterval);
-                            updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
-                            
-                            // Limpiar el video
-                            var video = document.getElementById('videoPlayer');
-                            video.pause();
-                            video.src = '';
-                            video.load();
-                            
-                            return showOfflinePlaceholder(streamData.channel_info);
-                        }
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Error actualizando viewers count:', error);
-                });
-        }
-
-        // Iniciar la actualización automática del viewers count
-        function startViewersUpdate(channelName) {
-            // Limpiar cualquier intervalo anterior
-            clearInterval(viewersUpdateInterval);
-            
-            // Actualizar cada minuto (60000 ms)
-            viewersUpdateInterval = setInterval(function() {
-                updateViewersCount(channelName);
-            }, 60000);
-            
-            console.log('Iniciando actualización automática de viewers cada minuto');
-        }
-
-        // Función para agregar canal a la lista
-        function addToList() {
-            var channelName = document.getElementById('channelInput').value.trim();
-            if (!channelName) {
-                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
+                fullscreenVideo.style.display = 'none';
+                console.log('No hay stream para mostrar en pantalla completa');
                 return;
             }
             
-            // Verificar si el canal ya está en la lista
-            var alreadyExists = savedChannels.some(function(channel) {
-                return channel.name === channelName;
-            });
+            // Sincronizar mensajes del chat
+            var fullscreenMessages = document.getElementById("fullscreenMessages");
+var normalMessages = document.getElementById("messages");
+fullscreenMessages.innerHTML = normalMessages.innerHTML; // ✅ Limpia + Copia
+            pauseRemoval = false; // Forzar que el scroll sea automático
+    document.getElementById("fullscreenScrollBottomBtn").style.display = "none";
+            fullscreenContainer.classList.add('active');
+            document.querySelector('.app-container').style.display = 'none';
+            isFullscreen = true;
             
-            if (alreadyExists) {
-                updateStatus('<i class="fas fa-info-circle"></i> Este canal ya está en tu lista', 'loading');
-                return;
-            }
+            setupFullscreenChatEvents();
             
-            updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
-            
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData || !streamData.channel_info) {
-                        throw new Error('No se pudo obtener información del canal');
-                    }
-                    
-                    var channelInfo = streamData.channel_info;
-                    var newChannel = {
-                        name: channelName,
-                        profile_pic: channelInfo.profile_pic || '',
-                        displayName: channelInfo.name || channelName,
-                        verified: channelInfo.verified || false
-                    };
-                    
-                    savedChannels.push(newChannel);
-                    localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
-                    updateChannelsStatus();
-                    
-                    updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
-                })
-                .catch(function(error) {
-                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
-                    console.error('Error:', error);
-                });
-        }
-
-        // Función para cargar un canal desde la lista
-        function loadChannel(channelName) {
-            document.getElementById('channelInput').value = channelName;
-            loadStream();
-            
-            // Hacer scroll al contenedor de video
-            scrollToVideoContainer();
-        }
-
-        // Función para eliminar un canal de la lista
-        function removeChannel(channelName) {
-            savedChannels = savedChannels.filter(function(channel) {
-                return channel.name !== channelName;
-            });
-            localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
-            updateChannelsStatus();
-            updateStatus('<i class="fas fa-trash-alt"></i> Canal eliminado de la lista', 'success');
-        }
-
-        // Función para obtener el estado de un canal
-        function getChannelStatus(channelName) {
-            return getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData || !streamData.channel_info) {
-                        throw new Error('No se pudo obtener información del canal');
-                    }
-                    
-                    return {
-                        is_live: streamData.channel_info.is_live,
-                        viewer_count: streamData.channel_info.viewer_count || 0,
-                        verified: streamData.channel_info.verified || false
-                    };
-                })
-                .catch(function(error) {
-                    console.error('Error obteniendo estado del canal:', error);
-                    return { is_live: false, viewer_count: 0, verified: false };
-                });
-        }
-
-        // Función para renderizar la lista de canales
-        function renderChannelsList() {
-            var tabsContainer = document.getElementById('tabsContainer');
-            
-            if (savedChannels.length === 0) {
-                tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-inbox"></i> No hay canales guardados</div>';
-                return;
-            }
-            
-            // Mostrar estado de carga temporal
-            tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Cargando estados...</div>';
-            
-            // Actualizar estados (esto ahora ordenará automáticamente)
-            updateChannelsStatus();
-        }
-
-// Función para actualizar el estado de todos los canales en la lista
-function updateChannelsStatus() {
-    var tabsContainer = document.getElementById('tabsContainer');
-    var refreshBtn = document.querySelector('.refresh-btn');
+            setTimeout(function() {
+        var fullscreenMessages = document.getElementById("fullscreenMessages");
+        fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
+    }, 100);
     
-    // Mostrar estado de carga
-    tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Actualizando estados...</div>';
-    
-    // Deshabilitar el botón temporalmente y cambiar icono
-    if (refreshBtn) {
-        refreshBtn.disabled = true;
-        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Actualizando...</span>';
+    var elem = fullscreenContainer;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
     }
     
-    var promises = [];
-    for (var i = 0; i < savedChannels.length; i++) {
-        (function(channel) {
-            promises.push(
-                getChannelStatus(channel.name)
-                    .then(function(status) {
-                        return { channel: channel, status: status };
-                    })
-            );
-        })(savedChannels[i]);
-    }
-    
-    Promise.all(promises)
-        .then(function(results) {
-            // Ordenar canales: online primero
-            results.sort(function(a, b) {
-                if (a.status.is_live && !b.status.is_live) return -1;
-                if (!a.status.is_live && b.status.is_live) return 1;
-                return 0;
-            });
-            
-            // Actualizar el DOM en el orden correcto
-            tabsContainer.innerHTML = '';
-            
-            for (var i = 0; i < results.length; i++) {
-                var channel = results[i].channel;
-                var status = results[i].status;
-                
-                var channelTabHTML = 
-                    '<div class="channel-tab-wrapper">' +
-                        '<div class="channel-tab" onclick="loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();">' +
-                            (channel.profile_pic ? 
-                                '<img src="' + channel.profile_pic + '" alt="' + channel.displayName + '" class="channel-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' : 
-                                '') +
-                            '<div class="channel-img-placeholder" style="' + (channel.profile_pic ? 'display: none;' : 'display: flex;') + '">' +
-                                '<i class="fas fa-user"></i>' +
-                            '</div>' +
-                            '<div class="channel-name-tab">' + channel.displayName + '</div>' +
-                            '<div class="channel-status ' + (status.is_live ? 'online' : 'offline') + '">' +
-                                (status.is_live ? 
-                                    '<i class="fas fa-users"></i> ' + status.viewer_count : 
-                                    '<i class="fas fa-circle"></i> Offline') +
-                            '</div>' +
-                            '<button class="view-btn ' + (status.is_live ? '' : 'offline') + '" onclick="event.stopPropagation(); ' + 
-                                (status.is_live ? 
-                                    'loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();' : 
-                                    'window.open(\'https://kick.com/' + channel.name + '\', \'_blank\')') + '">' +
-                                (status.is_live ? 
-                                    '<i class="fas fa-play"></i> Ver' : 
-                                    '<i class="fas fa-eye"></i> Ver canal') +
-                            '</button>' +
-                        '</div>' +
-                        '<button class="delete-btn" onclick="event.stopPropagation(); removeChannel(\'' + channel.name + '\')">' +
-                            '<i class="fas fa-times"></i>' +
-                        '</button>' +
-                    '</div>';
-                
-                tabsContainer.innerHTML += channelTabHTML;
-            }
-            
-            // Restaurar el botón
-            if (refreshBtn) {
-                refreshBtn.disabled = false;
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> <span>Actualizar</span>';
-            }
-            
-            updateStatus('<i class="fas fa-check"></i> Estados de canales actualizados', 'success');
-        })
-        .catch(function(error) {
-            console.error('Error actualizando estados de canales:', error);
-            
-            // Restaurar el botón incluso en caso de error
-            if (refreshBtn) {
-                refreshBtn.disabled = false;
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-            }
-            
-            updateStatus('<i class="fas fa-exclamation-circle"></i> Error al actualizar estados', 'error');
-        });
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 }
 
-        // Función para mostrar el placeholder inicial
-        function showInitialPlaceholder() {
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+        function setupFullscreenChatEvents() {
+            var fullscreenMessages = document.getElementById('fullscreenMessages');
+            var fullscreenScrollBtn = document.getElementById('fullscreenScrollBottomBtn');
             
-            // Ocultar video y mostrar placeholder
-            video.style.display = 'none';
-            offlinePlaceholder.style.display = 'flex';
+            fullscreenMessages.addEventListener("scroll", function() {
+                var atBottom = fullscreenMessages.scrollHeight - fullscreenMessages.scrollTop - fullscreenMessages.clientHeight < 50;
+                if (!atBottom) {
+                    pauseRemoval = true;
+                    fullscreenScrollBtn.style.display = "flex";
+                    clearTimeout(pauseRemovalTimer);
+                    pauseRemovalTimer = setTimeout(function() { 
+                        pauseRemoval = false; 
+                    fullscreenScrollBtn.style.display = "none";
+            }, 30000);
+        } else {
+            pauseRemoval = false;
+                    fullscreenScrollBtn.style.display = "none";
+                }
+            });
             
-            // Limpiar cualquier reproducción en curso
-            video.pause();
-            video.src = '';
-            video.load();
-            
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
-            
-            // Limpiar intervalos de actualización
-            clearInterval(viewersUpdateInterval);
-            
-            // Limpiar información del canal
-            document.getElementById('channelInfo').innerHTML = '';
-            
-            // Actualizar placeholder con contenido inicial
-            offlinePlaceholder.innerHTML = 
-                '<i class="fas fa-play-circle offline-icon"></i>' +
-                '<div class="offline-channel-name">Stream Player</div>' +
-                '<div class="offline-status">Selecciona un canal para comenzar</div>' +
-                '<div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>' +
-                '<button class="offline-btn" onclick="document.getElementById(\'channelInput\').focus()">' +
-                    '<i class="fas fa-search"></i> Buscar canal' +
-                '</button>';
+            fullscreenScrollBtn.onclick = function() {
+                fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
+                fullscreenScrollBtn.style.display = "none";
+        pauseRemoval = false;
+            };
         }
 
-        // ========== CÓDIGO DEL CHAT ==========
-        var ws = null;
-        var emotes = {};
-        var rooms = {};
-        var MAX_MESSAGES = 100;
-        var pauseRemoval = false;
-        var pauseRemovalTimer = null;
-        var messagesBox = document.getElementById("messages");
-        var scrollBtn = document.getElementById("scrollBottomBtn");
+        function handleFullscreenChange() {
+            var fullscreenElement = document.fullscreenElement || 
+                                   document.webkitFullscreenElement ||
+                                   document.mozFullScreenElement ||
+                                   document.msFullscreenElement;
+            
+            if (!fullscreenElement && isFullscreen) {
+                exitFullscreen();
+            }
+        }
 
-        // Función para conectar al chat de un canal
+        function exitFullscreen() {
+            var videoPlayer = document.getElementById('videoPlayer');
+            var fullscreenVideo = document.getElementById('fullscreenVideo');
+            var fullscreenContainer = document.getElementById('fullscreenContainer');
+            
+            if (fullscreenVideo.src && fullscreenVideo.src !== '') {
+                videoPlayer.src = fullscreenVideo.src;
+                
+                if (hls && hls.media) {
+                    hls.detachMedia();
+                    hls.attachMedia(videoPlayer);
+                }
+                
+                videoPlayer.currentTime = fullscreenVideo.currentTime;
+                
+                if (!fullscreenVideo.paused) {
+                    videoPlayer.play().catch(function(e) {
+                        console.log('Error al reproducir al salir de pantalla completa:', e);
+                    });
+                }
+            }
+            
+            fullscreenContainer.classList.remove('active');
+            document.querySelector('.app-container').style.display = 'flex';
+            isFullscreen = false;
+            
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            }
+            
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+        }
+
+        // ========== CHAT MEJORADO ==========
         function joinChannel(channelName) {
-            // Cerrar conexión anterior si existe
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
             
-            // Limpiar mensajes anteriores
-            messagesBox.innerHTML = '';
+            document.getElementById("messages").innerHTML = '';
+            document.getElementById("fullscreenMessages").innerHTML = '';
             
-            // Inicializar WebSocket
             ws = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.6.0");
             
             ws.onopen = function() { 
@@ -1890,12 +1309,45 @@ function updateChannelsStatus() {
                     if (!data.data) return;
                     var messageData = JSON.parse(data.data);
                     if (messageData.sender && messageData.content) {
-                        addMsg(messageData.sender.username, messageData.content);
+                        addMsgToBothContainers(messageData.sender.username, messageData.content);
                     }
                 } catch(e) {
                     // Error silencioso
                 }
             };
+        }
+
+        function addMsgToBothContainers(user, text) {
+            addMsgToContainer(user, text, "messages");
+            addMsgToContainer(user, text, "fullscreenMessages");
+        }
+
+        function addMsgToContainer(user, text, containerId) {
+            var messagesBox = document.getElementById(containerId);
+            var scrollBtn = containerId === "messages" ? 
+                document.getElementById("scrollBottomBtn") : 
+                document.getElementById("fullscreenScrollBottomBtn");
+            
+            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
+            
+            var msgElement = document.createElement("div");
+            msgElement.className = "msg";
+            var color = nameColor(user);
+            var parsedText = parseEmotes(text);
+
+            msgElement.innerHTML = "<span class='username' style='color:" + color + "'>" + user + "</span><span class='colon'>:</span> <span>" + parsedText + "</span>";
+            messagesBox.appendChild(msgElement);
+
+            if (!pauseRemoval) {
+                while (messagesBox.children.length > MAX_MESSAGES) {
+                    messagesBox.removeChild(messagesBox.firstChild);
+                }
+            }
+
+            if (atBottom || !pauseRemoval) {
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+                if (scrollBtn) scrollBtn.style.display = "none";
+            }
         }
 
         // ===== 7TV GLOBAL =====
@@ -2036,101 +1488,670 @@ function updateChannelsStatus() {
             return vibrantColors[Math.abs(hash) % vibrantColors.length];
         }
 
-        // ===== SCROLL EVENT =====
-        messagesBox.addEventListener("scroll", function() {
-            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
-            if (!atBottom) {
-                pauseRemoval = true;
-                scrollBtn.style.display = "flex";
-                clearTimeout(pauseRemovalTimer);
-                pauseRemovalTimer = setTimeout(function() { 
-                    pauseRemoval = false; 
-                }, 60000);
-            } else {
-                scrollBtn.style.display = "none";
-            }
-        });
-
-        // ===== ADD MSG =====
-        function addMsg(user, text) {
-            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
+        // Configurar eventos del chat normal
+        function setupNormalChatEvents() {
+            var messagesBox = document.getElementById("messages");
+            var scrollBtn = document.getElementById("scrollBottomBtn");
             
-            var msgElement = document.createElement("div");
-            msgElement.className = "msg";
-            var color = nameColor(user);
-            var parsedText = parseEmotes(text);
-
-            msgElement.innerHTML = "<span class='username' style='color:" + color + "'>" + user + "</span><span class='colon'>:</span> <span>" + parsedText + "</span>";
-            messagesBox.appendChild(msgElement);
-
-            if (!pauseRemoval) {
-                while (messagesBox.children.length > MAX_MESSAGES) {
-                    messagesBox.removeChild(messagesBox.firstChild);
+            messagesBox.addEventListener("scroll", function() {
+                var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
+                if (!atBottom) {
+                    pauseRemoval = true;
+                    scrollBtn.style.display = "flex";
+                    clearTimeout(pauseRemovalTimer);
+                    pauseRemovalTimer = setTimeout(function() { 
+                        pauseRemoval = false; 
+                    }, 30000);
+                } else {
+                    scrollBtn.style.display = "none";
                 }
-            }
-
-            if (atBottom) {
+            });
+            
+            scrollBtn.onclick = function() {
                 messagesBox.scrollTop = messagesBox.scrollHeight;
                 scrollBtn.style.display = "none";
+            };
+        }
+
+        // ========== FUNCIONES EXISTENTES DEL STREAM ==========
+        // (Todas las funciones existentes se mantienen igual)
+        function scrollToVideoContainer() {
+            const videoContainer = document.querySelector('.status');
+            if (videoContainer) {
+                videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
-        // ===== BOTON SCROLL =====
-        scrollBtn.onclick = function() {
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-            scrollBtn.style.display = "none";
-        };
+        function getVerifiedBadge(verified) {
+            if (verified) {
+                return '<img src="https://raw.githubusercontent.com/j4m1r98/Utilidades/refs/heads/main/verified-badge.svg" class="verified-badge" alt="Verified">';
+            }
+            return '';
+        }
+
+        function makeRequest(url) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            resolve(data);
+                        } catch (e) {
+                            reject(new Error('Error parsing JSON'));
+                        }
+                    } else {
+                        reject(new Error('HTTP error: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error'));
+                };
+                xhr.send();
+            });
+        }
+
+        function getLastLiveText(username) {
+            return makeRequest('https://kick.com/api/v1/channels/' + username)
+                .then(function(data) {
+                    if (Array.isArray(data.previous_livestreams) && data.previous_livestreams.length > 0) {
+                        var last = data.previous_livestreams[0];
+                        var startMs = Date.parse((last.created_at || '') + "Z");
+                        var durMs = Number(last.duration);
+                        if (!isNaN(startMs) && !isNaN(durMs) && durMs > 0) {
+                            var endMs = startMs + durMs;
+                            var agoMs = Date.now() - endMs;
+                            if (agoMs > 0) {
+                                var totalSeconds = Math.floor(agoMs / 1000);
+                                if (totalSeconds < 60) return "menos de un min";
+                                var totalMinutes = Math.floor(totalSeconds / 60);
+                                var totalHours = Math.floor(totalMinutes / 60);
+                                var days = Math.floor(totalHours / 24);
+                                var hours = totalHours % 24;
+                                var minutes = totalMinutes % 60;
+                                var parts = [];
+                                if (days > 0) parts.push(days + ' día' + (days !== 1 ? 's' : ''));
+                                if (hours > 0) parts.push(hours + ' h');
+                                if (minutes > 0 && days === 0) parts.push(minutes + ' min');
+                                if (parts.length === 0) return "menos de un min";
+                                return 'hace ' + parts.join(' ');
+                            }
+                        }
+                    }
+                    return "Nunca ha estado en vivo";
+                })
+                .catch(function(e) {
+                    console.warn('Error al obtener último live de ' + username + ':', e);
+                    return "No disponible";
+                });
+        }
+
+        function getStreamFromKickAPI(channel) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://kick.com/api/v2/channels/' + encodeURIComponent(channel), true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            var streamData = {
+                                playback_url: data.playback_url,
+                                channel_info: {
+                                    name: data.user ? data.user.username : channel,
+                                    title: data.livestream ? data.livestream.session_title : '',
+                                    profile_pic: data.user ? data.user.profile_pic : '',
+                                    is_live: data.livestream ? data.livestream.is_live : false,
+                                    viewer_count: data.livestream ? data.livestream.viewer_count : 0,
+                                    verified: data.verified || false
+                                }
+                            };
+                            resolve(streamData);
+                        } catch (e) {
+                            reject(new Error('Error parsing JSON from Kick API'));
+                        }
+                    } else {
+                        reject(new Error('Error del Kick API: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error when connecting to Kick API'));
+                };
+                xhr.send();
+            });
+        }
+
+        function loadStream() {
+            var channelName = document.getElementById('channelInput').value.trim();
+            if (!channelName) {
+                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
+                return;
+            }
+            
+            clearInterval(viewersUpdateInterval);
+            
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            video.pause();
+            video.src = '';
+            video.load();
+            
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            
+            currentChannel = channelName;
+            scrollToVideoContainer();
+
+            updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
+            
+            joinChannel(channelName);
+            
+            getStreamFromKickAPI(channelName)
+                .then(function(streamData) {
+                    if (!streamData) throw new Error('No se pudo obtener información del canal');
+                    
+                    if (!streamData.channel_info.is_live) {
+                        return showOfflinePlaceholder(streamData.channel_info)
+                            .then(function() {
+                                updateStatus('<i class="fas fa-user-slash"></i> El canal está offline', 'error');
+                            });
+                    }
+                    
+                    if (!streamData.playback_url) throw new Error('No se pudo obtener el stream del Kick API');
+                    
+                    console.log('URL del stream obtenida:', streamData.playback_url);
+                    updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
+             
+                    updateStatus('<i class="fas fa-cloud"></i> Obteniendo stream via proxy...', 'loading');
+                    return getProxiedStreamUrl(streamData.playback_url)
+                        .then(function(proxiedStreamUrl) {
+                            playStream(proxiedStreamUrl);
+                            updateChannelInfo(streamData.channel_info);
+                            startViewersUpdate(channelName);
+                        });
+                })
+                .catch(function(error) {
+                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
+                    console.error('Error:', error);
+                });
+        }
+                                                                             
+        function getProxiedStreamUrl(streamUrl) {
+            var proxyUrls = [
+                'https://procsyurlstrm.j4m1r-98.workers.dev/?url=' + encodeURIComponent(streamUrl),
+                'https://corsproxy.io/?' + encodeURIComponent(streamUrl),
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(streamUrl),
+                'https://cors-anywhere.herokuapp.com/' + streamUrl
+            ];
+            
+            function tryProxy(index) {
+                if (index >= proxyUrls.length) {
+                    return Promise.reject(new Error('No se pudo encontrar un proxy funcionando'));
+                }
+                
+                var proxyUrl = proxyUrls[index];
+                console.log('Probando proxy:', proxyUrl);
+                
+                return testProxyUrl(proxyUrl)
+                    .then(function() {
+                        console.log('Proxy funcionando:', proxyUrl);
+                        return proxyUrl;
+                    })
+                    .catch(function(error) {
+                        console.log('Proxy falló:', proxyUrl, error);
+                        return tryProxy(index + 1);
+                    });
+            }
+            
+            return tryProxy(0);
+        }
+
+        function testProxyUrl(proxyUrl) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('HEAD', proxyUrl, true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) resolve(true);
+                    else reject(new Error('HTTP error: ' + xhr.status));
+                };
+                xhr.onerror = function() { reject(new Error('Network error')); };
+                xhr.send();
+            });
+        }
+
+        function playStream(url) {
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            
+            video.style.display = 'block';
+            offlinePlaceholder.style.display = 'none';
+            
+            if (hls) hls.destroy();
+            
+            console.log('Reproduciendo a través de proxy:', url);
+            
+            video.src = '';
+            video.load();
+            
+            if (window.Hls && Hls.isSupported()) {
+                hls = new Hls({ enableWorker: false, lowLatencyMode: true, backBufferLength: 90 });
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log('Manifiesto HLS cargado correctamente (proxy)');
+                    updateQualityDropdown();
+                    video.play().catch(function(e) {
+                        console.log('Auto-play bloqueado (proxy):', e);
+                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
+                    });
+                });
+                                               
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('Error HLS (proxy):', data);
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                updateStatus('<i class="fas fa-redo"></i> Error de red, reconectando...', 'error');
+                                setTimeout(function() { if (hls) hls.startLoad(); }, 2000);
+                                break;
+                            default:
+                                updateStatus('<i class="fas fa-exclamation-circle"></i> Error del stream, recargando...', 'error');
+                                setTimeout(loadStream, 3000);
+                                break;
+                        }
+                    }
+                });
+                
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                console.log('Usando HLS nativo (proxy)');
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    console.log('Metadata cargada (proxy)');
+                    video.play().catch(function(e) {
+                        console.log('Auto-play bloqueado (proxy):', e);
+                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
+                    });
+                });
+            } else {
+                updateStatus('<i class="fas fa-exclamation-circle"></i> HLS no soportado en este navegador', 'error');
+                return;
+            }
+            
+            video.addEventListener('waiting', function() {
+                updateStatus('<i class="fas fa-hourglass-half"></i> Buffering...', 'loading');
+            });
+            
+            video.addEventListener('playing', function() {
+                updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
+            });   
+        }
+
+        function updateQualityDropdown() {
+            if (!hls || !hls.levels || hls.levels.length === 0) {
+                console.log('No hay niveles de calidad disponibles');
+                return;
+            }
+            
+            var qualityDropdown = document.getElementById('qualityDropdown');
+            currentLevels = hls.levels;
+            qualityDropdown.innerHTML = '';
+            
+            var autoOption = document.createElement('div');
+            autoOption.className = 'quality-option';
+            autoOption.textContent = 'Auto';
+            autoOption.setAttribute('data-level', '-1');
+            if (hls.currentLevel === -1) autoOption.classList.add('active');
+            autoOption.onclick = function() { changeQuality(-1); };
+            qualityDropdown.appendChild(autoOption);
+            
+            for (var i = 0; i < currentLevels.length; i++) {
+                var level = currentLevels[i];
+                var label = getQualityLabel(level);
+                var option = document.createElement('div');
+                option.className = 'quality-option';
+                option.textContent = label;
+                option.setAttribute('data-level', i.toString());
+                if (hls.currentLevel === i) option.classList.add('active');
+                option.onclick = (function(levelIndex) {
+                    return function() { changeQuality(levelIndex); };
+                })(i);
+                qualityDropdown.appendChild(option);
+            }
+        }
+
+        function getQualityLabel(level) {
+            if (level.height) return level.height + 'p';
+            else if (level.name) return level.name;
+            else if (level.bitrate) return Math.round(level.bitrate / 1000) + ' kbps';
+            else return 'Nivel ' + level.id;
+        }
+
+        function changeQuality(levelIndex) {
+            if (!hls) return;
+            hls.currentLevel = levelIndex;
+            var options = document.querySelectorAll('.quality-option');
+            for (var i = 0; i < options.length; i++) {
+                options[i].classList.remove('active');
+                if (parseInt(options[i].getAttribute('data-level')) === levelIndex) {
+                    options[i].classList.add('active');
+                }
+            }
+            document.getElementById('qualityDropdown').classList.remove('show');
+            console.log('Calidad cambiada a nivel: ' + levelIndex);
+        }
+
+        function toggleQualityDropdown() {
+            var dropdown = document.getElementById('qualityDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function showOfflinePlaceholder(channelInfo) {
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            
+            video.pause();
+            video.src = '';
+            video.load();
+            video.style.display = 'none';
+            offlinePlaceholder.style.display = 'flex';
+            clearInterval(viewersUpdateInterval);
+            
+            return getLastLiveText(channelInfo.name)
+                .then(function(lastLiveText) {
+                    updateOfflineChannelInfo(channelInfo, lastLiveText);
+                    offlinePlaceholder.innerHTML = 
+                        '<i class="fas fa-user-slash offline-icon"></i>' +
+                        '<div class="offline-channel-name">' + (channelInfo.name || 'Canal') + '</div>' +
+                        '<div class="offline-status">Está offline en este momento</div>' +
+                        '<div class="offline-last-time">Última vez: ' + lastLiveText + '</div>' +
+                        '<button class="offline-btn" onclick="window.open(\'https://kick.com/' + channelInfo.name + '\', \'_blank\')">' +
+                            '<i class="fas fa-external-link-alt"></i> Visitar canal' +
+                        '</button>';
+                });
+        }
+
+        function refreshStream() { console.log('Actualización manual del stream'); loadStream(); }
+
+        function autoRefreshToggle() {
+            var btn = document.getElementById('autoRefreshBtn');
+            if (isAutoRefresh) {
+                clearInterval(autoRefreshInterval);
+                isAutoRefresh = false;
+                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: OFF';
+                updateStatus('Auto-refresh desactivado', 'success');
+            } else {
+                autoRefreshInterval = setInterval(refreshStream, 20000);
+                isAutoRefresh = true;
+                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: ON';
+                updateStatus('Auto-refresh activado (cada 20s)', 'success');
+            }
+        }
+
+        function updateStatus(message, type) {
+            var status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = 'status ' + type;
+        }
+
+        function updateChannelInfo(info) {
+            var container = document.getElementById('channelInfo');
+            container.style.display = 'block';
+            if (info && info.name) {
+                var profilePic = info.profile_pic ? 
+                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
+                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
+                
+                container.innerHTML = 
+                    '<div class="channel-main-info">' +
+                        '<div class="channel-profile-container">' +
+                            profilePic +
+                            '<div class="channel-text-info">' +
+                                '<div class="channel-name-line">' +
+                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
+                                    '<div class="channel-viewers">' +
+                                        '<i class="fas fa-users"></i>' +
+                                        '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="channel-title">' + (info.title || 'Sin título') + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                container.innerHTML = '<p>Información del canal no disponible</p>';
+            }
+        }
+
+        function updateOfflineChannelInfo(info, lastLiveText) {
+            var container = document.getElementById('channelInfo');
+            container.style.display = 'block';
+            if (info && info.name) {
+                var profilePic = info.profile_pic ? 
+                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
+                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
+                
+                container.innerHTML = 
+                    '<div class="channel-main-info">' +
+                        '<div class="channel-profile-container">' +
+                            profilePic +
+                            '<div class="channel-text-info">' +
+                                '<div class="channel-name-line">' +
+                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
+                                '</div>' +
+                                '<div class="offline-time">Última vez en vivo ' + lastLiveText + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                container.innerHTML = '<p>Información del canal no disponible</p>';
+            }
+        }
+
+        function updateViewersCount(channelName) {
+            getStreamFromKickAPI(channelName)
+                .then(function(streamData) {
+                    if (streamData && streamData.channel_info) {
+                        var viewersCount = streamData.channel_info.viewer_count || 0;
+                        var viewersElement = document.querySelector('.viewers-count');
+                        if (viewersElement) viewersElement.textContent = viewersCount;
+                        
+                        if (!streamData.channel_info.is_live) {
+                            clearInterval(viewersUpdateInterval);
+                            updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
+                            var video = document.getElementById('videoPlayer');
+                            video.pause();
+                            video.src = '';
+                            video.load();
+                            return showOfflinePlaceholder(streamData.channel_info);
+                        }
+                    }
+                })
+                .catch(function(error) { console.error('Error actualizando viewers count:', error); });
+        }
+
+        function startViewersUpdate(channelName) {
+            clearInterval(viewersUpdateInterval);
+            viewersUpdateInterval = setInterval(function() { updateViewersCount(channelName); }, 60000);
+            console.log('Iniciando actualización automática de viewers cada minuto');
+        }
+
+        function addToList() {
+            var channelName = document.getElementById('channelInput').value.trim();
+            if (!channelName) {
+                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
+                return;
+            }
+            
+            var alreadyExists = savedChannels.some(function(channel) { return channel.name === channelName; });
+            if (alreadyExists) {
+                updateStatus('<i class="fas fa-info-circle"></i> Este canal ya está en tu lista', 'loading');
+                return;
+            }
+            
+            updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
+            
+            getStreamFromKickAPI(channelName)
+                .then(function(streamData) {
+                    if (!streamData || !streamData.channel_info) throw new Error('No se pudo obtener información del canal');
+                    
+                    var channelInfo = streamData.channel_info;
+                    var newChannel = {
+                        name: channelName,
+                        profile_pic: channelInfo.profile_pic || '',
+                        displayName: channelInfo.name || channelName,
+                        verified: channelInfo.verified || false
+                    };
+                    
+                    savedChannels.push(newChannel);
+                    localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+                    updateChannelsStatus();
+                    updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
+                })
+                .catch(function(error) {
+                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
+                    console.error('Error:', error);
+                });
+        }
+
+        function loadChannel(channelName) {
+            document.getElementById('channelInput').value = channelName;
+            loadStream();
+            scrollToVideoContainer();
+        }
+
+        function removeChannel(channelName) {
+            savedChannels = savedChannels.filter(function(channel) { return channel.name !== channelName; });
+            localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+            updateChannelsStatus();
+            updateStatus('<i class="fas fa-trash-alt"></i> Canal eliminado de la lista', 'success');
+        }
+
+        function getChannelStatus(channelName) {
+            return getStreamFromKickAPI(channelName)
+                .then(function(streamData) {
+                    if (!streamData || !streamData.channel_info) throw new Error('No se pudo obtener información del canal');
+                    return {
+                        is_live: streamData.channel_info.is_live,
+                        viewer_count: streamData.channel_info.viewer_count || 0,
+                        verified: streamData.channel_info.verified || false
+                    };
+                })
+                .catch(function(error) {
+                    console.error('Error obteniendo estado del canal:', error);
+                    return { is_live: false, viewer_count: 0, verified: false };
+                });
+        }
+
+        function renderChannelsList() {
+            var tabsContainer = document.getElementById('tabsContainer');
+            if (savedChannels.length === 0) {
+                tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-inbox"></i> No hay canales guardados</div>';
+                return;
+            }
+            tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Cargando estados...</div>';
+            updateChannelsStatus();
+        }
+
+        function updateChannelsStatus() {
+            var tabsContainer = document.getElementById('tabsContainer');
+            var refreshBtn = document.querySelector('.refresh-btn');
+            tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Actualizando estados...</div>';
+            
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Actualizando...</span>';
+            }
+            
+            var promises = [];
+            for (var i = 0; i < savedChannels.length; i++) {
+                (function(channel) {
+                    promises.push(getChannelStatus(channel.name).then(function(status) { return { channel: channel, status: status }; }));
+                })(savedChannels[i]);
+            }
+            
+            Promise.all(promises)
+                .then(function(results) {
+                    results.sort(function(a, b) {
+                        if (a.status.is_live && !b.status.is_live) return -1;
+                        if (!a.status.is_live && b.status.is_live) return 1;
+                        return 0;
+                    });
+                    
+                    tabsContainer.innerHTML = '';
+                    for (var i = 0; i < results.length; i++) {
+                        var channel = results[i].channel;
+                        var status = results[i].status;
+                        var channelTabHTML = 
+                            '<div class="channel-tab-wrapper">' +
+                                '<div class="channel-tab" onclick="loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();">' +
+                                    (channel.profile_pic ? '<img src="' + channel.profile_pic + '" alt="' + channel.displayName + '" class="channel-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' : '') +
+                                    '<div class="channel-img-placeholder" style="' + (channel.profile_pic ? 'display: none;' : 'display: flex;') + '">' + '<i class="fas fa-user"></i></div>' +
+                                    '<div class="channel-name-tab">' + channel.displayName + '</div>' +
+                                    '<div class="channel-status ' + (status.is_live ? 'online' : 'offline') + '">' + (status.is_live ? '<i class="fas fa-users"></i> ' + status.viewer_count : '<i class="fas fa-circle"></i> Offline') + '</div>' +
+                                    '<button class="view-btn ' + (status.is_live ? '' : 'offline') + '" onclick="event.stopPropagation(); ' + (status.is_live ? 'loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();' : 'window.open(\'https://kick.com/' + channel.name + '\', \'_blank\')') + '">' + (status.is_live ? '<i class="fas fa-play"></i> Ver' : '<i class="fas fa-eye"></i> Ver canal') + '</button>' +
+                                '</div>' +
+                                '<button class="delete-btn" onclick="event.stopPropagation(); removeChannel(\'' + channel.name + '\')">' + '<i class="fas fa-times"></i></button>' +
+                            '</div>';
+                        tabsContainer.innerHTML += channelTabHTML;
+                    }
+                    
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> <span>Actualizar</span>';
+                    }
+                    updateStatus('<i class="fas fa-check"></i> Estados de canales actualizados', 'success');
+                })
+                .catch(function(error) {
+                    console.error('Error actualizando estados de canales:', error);
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+                    }
+                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al actualizar estados', 'error');
+                });
+        }
+
+        function showInitialPlaceholder() {
+            var video = document.getElementById('videoPlayer');
+            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+            video.style.display = 'none';
+            offlinePlaceholder.style.display = 'flex';
+            video.pause();
+            video.src = '';
+            video.load();
+            if (hls) { hls.destroy(); hls = null; }
+            clearInterval(viewersUpdateInterval);
+            document.getElementById('channelInfo').innerHTML = '';
+            offlinePlaceholder.innerHTML = 
+                '<i class="fas fa-play-circle offline-icon"></i>' +
+                '<div class="offline-channel-name">Stream Player</div>' +
+                '<div class="offline-status">Selecciona un canal para comenzar</div>' +
+                '<div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>' +
+                '<button class="offline-btn" onclick="document.getElementById(\'channelInput\').focus()">' + '<i class="fas fa-search"></i> Buscar canal</button>';
+        }
 
         // Cargar al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Iniciando aplicación...');
-            showInitialPlaceholder(); // Mostrar placeholder inicial
+            showInitialPlaceholder();
             renderChannelsList();
+            setupNormalChatEvents();
             
-            // Event listener para el botón de calidad
             document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
-            
-            // Cerrar el dropdown si se hace clic fuera de él
             document.addEventListener('click', function(event) {
                 var qualityBtn = document.getElementById('qualityBtn');
                 var qualityDropdown = document.getElementById('qualityDropdown');
-                
-                if (qualityBtn && qualityDropdown && 
-                    !qualityBtn.contains(event.target) && 
-                    !qualityDropdown.contains(event.target)) {
+                if (qualityBtn && qualityDropdown && !qualityBtn.contains(event.target) && !qualityDropdown.contains(event.target)) {
                     qualityDropdown.classList.remove('show');
                 }
-            });
-            
-            // Mostrar información del canal al hacer hover o toque en el video en móvil
-            var videoContainer = document.getElementById('videoContainer');
-            if (videoContainer) {
-                videoContainer.addEventListener('mouseenter', showChannelInfoMobile);
-                videoContainer.addEventListener('touchstart', showChannelInfoMobile);
-                videoContainer.addEventListener('click', showChannelInfoMobile);
-            }
-            
+            });            
             document.getElementById('channelInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    loadStream();
-                }
+                if (e.key === 'Enter') loadStream();
             });
         });
-        
-        // Función para mostrar información del canal en móvil
-        function showChannelInfoMobile() {
-            if (window.innerWidth <= 768) {
-                var channelInfo = document.getElementById('channelInfo');
-                if (channelInfo && channelInfo.innerHTML.trim() !== '') {
-                    channelInfo.classList.add('show');
-                    // Programar para ocultar después de 5 segundos
-                    clearTimeout(channelInfoTimeout);
-                    channelInfoTimeout = setTimeout(function() {
-                        channelInfo.classList.remove('show');
-                    }, 5000);
-                }
-            }
-        }
     </script>
 </body>
 </html>
