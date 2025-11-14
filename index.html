@@ -276,6 +276,11 @@
             display: none;
         }
 
+        /* Ocultar botón en placeholder offline */
+        .video-container:has(.offline-placeholder[style*="display: flex"]) .fullscreen-btn {
+            display: none;
+        }
+
         /* Botón en modo FULLSCREEN */
         .fullscreen-video-section .fullscreen-exit-btn {
             z-index: 10001;
@@ -1174,8 +1179,22 @@
             videoPlayer.volume = currentVolume;
             videoPlayer.muted = wasMuted;
             videoPlayer.controls = true;
+
+            // ✅ AGREGAR ESTO:
+// 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
+if (wasPlaying) {
+    // Esperar un frame para que el DOM se estabilice
+    requestAnimationFrame(function() {
+        videoPlayer.play().then(function() {
+            console.log('✅ Video reanudado en fullscreen');
+        }).catch(function(e) {
+            console.log('⚠️ No se pudo reanudar automáticamente:', e);
+            videoPlayer.controls = true;
+        });
+    });
+}
             
-            // 7. Sincronizar chat
+            // 8. Sincronizar chat
             var fullscreenMessages = document.getElementById("fullscreenMessages");
             var normalMessages = document.getElementById("messages");
             fullscreenMessages.innerHTML = normalMessages.innerHTML;
@@ -1241,8 +1260,22 @@
             videoPlayer.volume = currentVolume;
             videoPlayer.muted = wasMuted;
             videoPlayer.controls = true;
+
+           // ✅ AGREGAR ESTO:
+// 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
+if (wasPlaying) {
+    // Esperar un frame para que el DOM se estabilice
+    requestAnimationFrame(function() {
+        videoPlayer.play().then(function() {
+            console.log('✅ Video reanudado al salir de fullscreen');
+        }).catch(function(e) {
+            console.log('⚠️ No se pudo reanudar automáticamente:', e);
+            videoPlayer.controls = true;
+        });
+    });
+} 
             
-            // 7. Aplicar estilos para modo normal
+            // 8. Aplicar estilos para modo normal
             videoPlayer.style.width = '100%';
             videoPlayer.style.height = '100%';
             videoPlayer.style.position = 'absolute';
