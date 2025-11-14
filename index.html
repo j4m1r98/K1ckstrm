@@ -1198,14 +1198,9 @@
             // ✅ AGREGAR ESTO:
 // 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
 if (wasPlaying) {
-    // Esperar un frame para que el DOM se estabilice
-    requestAnimationFrame(function() {
-        videoPlayer.play().then(function() {
-            console.log('✅ Video reanudado en fullscreen');
-        }).catch(function(e) {
-            console.log('⚠️ No se pudo reanudar automáticamente:', e);
-            videoPlayer.controls = true;
-        });
+    videoPlayer.play().catch(function(e) {
+        console.log('⚠️ No se pudo reanudar:', e);
+        videoPlayer.controls = true;
     });
 }
             
@@ -1279,16 +1274,11 @@ if (wasPlaying) {
            // ✅ AGREGAR ESTO:
 // 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
 if (wasPlaying) {
-    // Esperar un frame para que el DOM se estabilice
-    requestAnimationFrame(function() {
-        videoPlayer.play().then(function() {
-            console.log('✅ Video reanudado al salir de fullscreen');
-        }).catch(function(e) {
-            console.log('⚠️ No se pudo reanudar automáticamente:', e);
-            videoPlayer.controls = true;
-        });
+    videoPlayer.play().catch(function(e) {
+        console.log('⚠️ No se pudo reanudar:', e);
+        videoPlayer.controls = true;
     });
-} 
+}
             
             // 8. Aplicar estilos para modo normal
             videoPlayer.style.width = '100%';
