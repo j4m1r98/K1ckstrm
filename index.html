@@ -1619,6 +1619,18 @@ function setChannelInput(value, fromScript) {
     lastSetTime = Date.now(); // Registrar cuándo se puso el texto
 }
       
+        function setupRightColumnScrollPropagation() {
+    var rightColumn = document.querySelector('.right-column');
+    var centerColumn = document.querySelector('.center-column');
+    
+    if (!rightColumn || !centerColumn) return;
+    
+    rightColumn.addEventListener('wheel', function(e) {
+        centerColumn.scrollTop += e.deltaY;
+        e.preventDefault();
+    });
+}
+
         // ========== FUNCIONES EXISTENTES DEL STREAM ==========
         function scrollToVideoContainer() {
             const videoContainer = document.querySelector('.status');
@@ -2251,10 +2263,11 @@ function setChannelInput(value, fromScript) {
             console.log('Iniciando aplicación...');
             showInitialPlaceholder();
             renderChannelsList();
-            setupNormalChatEvents();
-            
+            setupNormalChatEvents();           
             setupChannelInputBehavior();
-            document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
+            setupRightColumnScrollPropagation();
+
+document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
             document.addEventListener('click', function(event) {
                 var qualityBtn = document.getElementById('qualityBtn');
                 var qualityDropdown = document.getElementById('qualityDropdown');
