@@ -1619,15 +1619,47 @@ function setChannelInput(value, fromScript) {
     lastSetTime = Date.now(); // Registrar cuándo se puso el texto
 }
       
-        function setupRightColumnScrollPropagation() {
+        // ========== SCROLL PROPAGATION A COLUMNA CENTRAL ==========
+function setupRightColumnScrollPropagation() {
     var rightColumn = document.querySelector('.right-column');
     var centerColumn = document.querySelector('.center-column');
     
     if (!rightColumn || !centerColumn) return;
     
+    // Prevenir scroll nativo en columna derecha
+    rightColumn.style.overflow = 'hidden';
+    
+    // Manejar wheel events en toda la columna derecha
     rightColumn.addEventListener('wheel', function(e) {
+        // Pasar el evento de scroll a la columna central
         centerColumn.scrollTop += e.deltaY;
+        
+        // Prevenir el scroll nativo en la columna derecha
         e.preventDefault();
+    });
+    
+    // También manejar touch events para dispositivos táctiles
+    rightColumn.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            var startY = e.touches[0].clientY;
+            var startScrollTop = centerColumn.scrollTop;
+            
+            function handleTouchMove(e) {
+                if (e.touches.length === 1) {
+                    var deltaY = startY - e.touches[0].clientY;
+                    centerColumn.scrollTop = startScrollTop + deltaY;
+                    e.preventDefault();
+                }
+            }
+            
+            function handleTouchEnd() {
+                rightColumn.removeEventListener('touchmove', handleTouchMove);
+                rightColumn.removeEventListener('touchend', handleTouchEnd);
+            }
+            
+            rightColumn.addEventListener('touchmove', handleTouchMove, { passive: false });
+            rightColumn.addEventListener('touchend', handleTouchEnd);
+        }
     });
 }
 
