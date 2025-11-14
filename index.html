@@ -1118,6 +1118,8 @@
         var hls = null;
         var autoRefreshInterval = null;
         var isAutoRefresh = false;
+        var inputTextFromScript = false;
+        var lastSetTime = 0;
         var viewersUpdateInterval = null;
         var currentChannel = '';
         var currentLevels = [];       
@@ -1583,6 +1585,40 @@ if (wasPlaying) {
             };
         }
 
+         // ========== CONTROL DE COMPORTAMIENTO DEL INPUT ==========
+function setupChannelInputBehavior() {
+    var channelInput = document.getElementById('channelInput');
+    
+    channelInput.addEventListener('focus', function() {
+        // Solo borrar si el texto fue puesto por script hace más de 500ms
+        if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
+            this.value = '';
+            inputTextFromScript = false;
+        } else {
+            // Poner cursor al final para texto manual
+            this.setSelectionRange(this.value.length, this.value.length);
+        }
+    });
+    
+    channelInput.addEventListener('click', function() {
+        if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
+            this.value = '';
+            inputTextFromScript = false;
+        }
+    });
+    
+    channelInput.addEventListener('input', function() {
+        inputTextFromScript = false;
+    });
+}
+
+function setChannelInput(value, fromScript) {
+    var channelInput = document.getElementById('channelInput');
+    channelInput.value = value;
+    inputTextFromScript = fromScript || false;
+    lastSetTime = Date.now(); // Registrar cuándo se puso el texto
+}
+      
         // ========== FUNCIONES EXISTENTES DEL STREAM ==========
         function scrollToVideoContainer() {
             const videoContainer = document.querySelector('.status');
@@ -2086,7 +2122,7 @@ if (wasPlaying) {
         }
 
         function loadChannel(channelName) {
-            document.getElementById('channelInput').value = channelName;
+            setChannelInput(channelName, true);
             loadStream();
             scrollToVideoContainer();
         }
@@ -2217,6 +2253,7 @@ if (wasPlaying) {
             renderChannelsList();
             setupNormalChatEvents();
             
+            setupChannelInputBehavior();
             document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
             document.addEventListener('click', function(event) {
                 var qualityBtn = document.getElementById('qualityBtn');
