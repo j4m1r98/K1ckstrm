@@ -2144,10 +2144,18 @@ if (wasPlaying) {
             Promise.all(promises)
                 .then(function(results) {
                     results.sort(function(a, b) {
-                        if (a.status.is_live && !b.status.is_live) return -1;
-                        if (!a.status.is_live && b.status.is_live) return 1;
-                        return 0;
-                    });
+    // Primero: Canales en vivo vs offline
+    if (a.status.is_live && !b.status.is_live) return -1;
+    if (!a.status.is_live && b.status.is_live) return 1;
+    
+    // Segundo: Si ambos están en vivo, ordenar por viewers (mayor a menor)
+    if (a.status.is_live && b.status.is_live) {
+        return b.status.viewer_count - a.status.viewer_count;
+    }
+    
+    // Tercero: Si ambos están offline, ordenar alfabéticamente
+    return a.channel.displayName.localeCompare(b.channel.displayName);
+});
                     
                     tabsContainer.innerHTML = '';
                     for (var i = 0; i < results.length; i++) {
