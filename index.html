@@ -241,24 +241,44 @@
             color: white;
         }
         
-        /* Botón de pantalla completa */
-        .fullscreen-btn {
-            background: #6441a5;
+        /* ========== BOTONES FULLSCREEN SIMPLE HOVER ========== */
+        .fullscreen-btn, .fullscreen-exit-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             border: none;
-            padding: 8px 12px;
             border-radius: 4px;
+            padding: 8px 12px;
             cursor: pointer;
+            z-index: 1000;
             display: flex;
             align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
-        .fullscreen-btn i {
-            margin-right: 8px;
+
+        /* Mostrar botón normal al hover del video container */
+        .video-container:hover .fullscreen-btn {
+            opacity: 1;
         }
-        
-        .fullscreen-btn:hover {
-            background: #7a52c4;
+
+        /* Mostrar botón exit al hover del fullscreen container */
+        .fullscreen-video-section:hover         .fullscreen-exit-btn {
+            opacity: 1;
+        }
+
+        /* Ocultar botón cuando no hay video */
+        .video-container:not(:has(video[style*="display: block"])) .fullscreen-btn {
+            display: none;
+        }
+
+        /* Botón en modo FULLSCREEN */
+        .fullscreen-video-section .fullscreen-exit-btn {
+            z-index: 10001;
         }
         
         .channel-info { 
@@ -657,7 +677,7 @@
             color: #8b949e
         }
 
-        /* ========== ESTILOS PANTALLA COMPLETA ========== */
+        /* ========== ESTILOS MEJORADOS PANTALLA COMPLETA ========== */
         .fullscreen-container {
             position: fixed;
             top: 0;
@@ -678,12 +698,19 @@
             flex: 1;
             position: relative;
             background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .fullscreen-video {
-            width: 100%;
-            height: 100%;
+        /* Video cuando está en modo fullscreen */
+        .fullscreen-container .video-player {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
             object-fit: contain;
+            position: relative !important;
         }
         
         .fullscreen-chat-section {
@@ -757,28 +784,10 @@
             display: none;
             z-index: 10;
         }
-        
-        .fullscreen-exit-btn {
-            position: absolute;
-            top: 15px;
-            right: calc(var(--right-column-width) + 15px);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            cursor: pointer;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-        }
-        
-        .fullscreen-exit-btn i {
-            margin-right: 8px;
-        }
-        
-        .fullscreen-exit-btn:hover {
-            background: rgba(0,0,0,0.9);
+
+        /* Clase temporal para debug */
+        .video-player.fullscreen-mode {
+            border: 2px solid #6441a5 !important;
         }
 
         /* Responsive para tablets */
@@ -931,7 +940,7 @@
 
             /* HACE QUE LOS CONTENEDORES PRINCIPALES SE COMPORTEN COMO SI NO EXISTIERAN */
            .center-column, .right-column {
-                display: contents; /* Los hijos directos se vuelven hijos del app-container */
+                display: contents;
             }
     
             /* AHORA REORDENA LOS ELEMENTOS COMO SI ESTUVIERAN TODOS EN EL MISMO CONTENEDOR */
@@ -987,12 +996,12 @@
                 height: 100vh;
             }
             
-            .fullscreen-video-section {               
+            .fullscreen-video-section {
                 position: relative;
                 width: 100%;
                 height: 0;
                 padding-top: 56.25%;
-                flex-shrink: 0;               
+                flex-shrink: 0;
             }
             
             .fullscreen-chat-section {
@@ -1001,10 +1010,8 @@
                 overflow: auto;             
             }
             
-            .fullscreen-exit-btn {
-                position: absolute;
-                top: 15px;
-                right: 15px;
+            .fullscreen-container .video-player {
+                height: 100% !important;
             }
         }
     </style>
@@ -1033,11 +1040,6 @@
                         <div class="quality-dropdown" id="qualityDropdown">
                         </div>
                     </div>
-                    
-                    <!-- Botón de pantalla completa -->
-                    <button class="fullscreen-btn" onclick="toggleFullscreen()">
-                        <i class="fas fa-expand"></i> Pantalla Completa
-                    </button>
                 </div>
             </div>
             
@@ -1045,6 +1047,10 @@
             
             <div class="video-container" id="videoContainer">
                 <video id="videoPlayer" controls style="display: none;"></video>
+                <!-- ✅ BOTÓN DENTRO DEL CONTENEDOR DE VIDEO -->
+                <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">
+                    <i class="fas fa-expand"></i>
+                </button>
                 <div id="offlinePlaceholder" class="offline-placeholder">
                     <i class="fas fa-play-circle offline-icon"></i>
                     <div class="offline-channel-name">Stream Player</div>
@@ -1081,12 +1087,13 @@
         </div>
     </div>
 
-    <!-- Contenedor para pantalla completa -->
+    <!-- Contenedor para pantalla completa - MODIFICADO -->
     <div class="fullscreen-container" id="fullscreenContainer">
         <div class="fullscreen-video-section">
-            <video id="fullscreenVideo" class="fullscreen-video" controls></video>
-            <button class="fullscreen-exit-btn" onclick="toggleFullscreen()">
-                <i class="fas fa-compress"></i> Salir
+            <!-- ✅ EL VIDEO PRINCIPAL SE MOVERÁ AQUÍ -->
+            <!-- ✅ BOTÓN DENTRO DE LA SECCIÓN DE VIDEO FULLSCREEN -->
+            <button class="fullscreen-exit-btn" onclick="toggleFullscreen()" title="Salir de Pantalla Completa">
+                <i class="fas fa-compress"></i>
             </button>
         </div>
         <div class="fullscreen-chat-section">
@@ -1122,7 +1129,7 @@
         // Lista de canales guardados
         var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
-        // ========== PANTALLA COMPLETA ==========
+        // ========== PANTALLA COMPLETA MEJORADA ==========
         function toggleFullscreen() {
             if (isFullscreen) {
                 exitFullscreen();
@@ -1133,65 +1140,148 @@
 
         function enterFullscreen() {
             var videoPlayer = document.getElementById('videoPlayer');
-            var fullscreenVideo = document.getElementById('fullscreenVideo');
+            var videoContainer = document.getElementById('videoContainer');
             var fullscreenContainer = document.getElementById('fullscreenContainer');
+            var fullscreenVideoSection = document.querySelector('.fullscreen-video-section');
             
-            if (videoPlayer.src && videoPlayer.src !== '') {
-                fullscreenVideo.src = videoPlayer.src;
-                
-                if (hls && hls.media) {
-                    hls.detachMedia();
-                    hls.attachMedia(fullscreenVideo);
-                }
-                
-                fullscreenVideo.currentTime = videoPlayer.currentTime;
-                
-                if (!videoPlayer.paused) {
-                    fullscreenVideo.play().catch(function(e) {
-                        console.log('Error al reproducir en pantalla completa:', e);
-                    });
-                }
-                
-                fullscreenVideo.style.display = 'block';
-            } else {
-                fullscreenVideo.style.display = 'none';
+            // Verificar que hay un stream cargado
+            if (!videoPlayer.src || videoPlayer.src === '') {
                 console.log('No hay stream para mostrar en pantalla completa');
+                updateStatus('<i class="fas fa-exclamation-circle"></i> No hay stream cargado', 'error');
                 return;
             }
             
-            // Sincronizar mensajes del chat
-            var fullscreenMessages = document.getElementById("fullscreenMessages");
-var normalMessages = document.getElementById("messages");
-fullscreenMessages.innerHTML = normalMessages.innerHTML; // ✅ Limpia + Copia
-            pauseRemoval = false; // Forzar que el scroll sea automático
-    document.getElementById("fullscreenScrollBottomBtn").style.display = "none";
+            console.log('🎬 Entrando en pantalla completa...');
+            
+            // 1. Guardar estado actual
+            var wasPlaying = !videoPlayer.paused;
+            var currentTime = videoPlayer.currentTime;
+            var currentVolume = videoPlayer.volume;
+            var wasMuted = videoPlayer.muted;
+            
+            // 3. MOVER el video al contenedor de fullscreen
+            fullscreenVideoSection.appendChild(videoPlayer);
+            
+            // 4. Aplicar clases de estilo fullscreen
+            videoPlayer.classList.add('fullscreen-mode');
+            
+            // 5. Mostrar contenedor fullscreen
             fullscreenContainer.classList.add('active');
             document.querySelector('.app-container').style.display = 'none';
-            isFullscreen = true;
             
+            // 6. Restaurar propiedades del video
+            videoPlayer.currentTime = currentTime;
+            videoPlayer.volume = currentVolume;
+            videoPlayer.muted = wasMuted;
+            videoPlayer.controls = true;
+            
+            // 7. Sincronizar chat
+            var fullscreenMessages = document.getElementById("fullscreenMessages");
+            var normalMessages = document.getElementById("messages");
+            fullscreenMessages.innerHTML = normalMessages.innerHTML;
+            pauseRemoval = false;
+            document.getElementById("fullscreenScrollBottomBtn").style.display = "none";
+            
+            // 8. Configurar eventos del chat fullscreen
             setupFullscreenChatEvents();
             
+            // 9. Scroll al final del chat
             setTimeout(function() {
-        var fullscreenMessages = document.getElementById("fullscreenMessages");
-        fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
-    }, 100);
-    
-    var elem = fullscreenContainer;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-    }
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-}
+                fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
+            }, 100);
+            
+            isFullscreen = true;
+            
+            // 11. Activar fullscreen del navegador
+            var elem = fullscreenContainer;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            }
+            
+            // 12. Configurar event listeners para fullscreen change
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+            
+            console.log('✅ Video movido a pantalla completa');
+        }
+
+        function exitFullscreen() {
+            var videoPlayer = document.getElementById('videoPlayer');
+            var videoContainer = document.getElementById('videoContainer');
+            var fullscreenContainer = document.getElementById('fullscreenContainer');
+            
+            console.log('🎬 Saliendo de pantalla completa...');
+            
+            // 1. Guardar estado actual del video en fullscreen
+            var wasPlaying = !videoPlayer.paused;
+            var currentTime = videoPlayer.currentTime;
+            var currentVolume = videoPlayer.volume;
+            var wasMuted = videoPlayer.muted;
+            
+            // 3. MOVER el video de vuelta al contenedor original
+            videoContainer.appendChild(videoPlayer);
+            
+            // 4. Remover clases de estilo fullscreen
+            videoPlayer.classList.remove('fullscreen-mode');
+            
+            // 5. Ocultar contenedor fullscreen
+            fullscreenContainer.classList.remove('active');
+            document.querySelector('.app-container').style.display = 'flex';
+            
+            // 6. Restaurar propiedades del video
+            videoPlayer.currentTime = currentTime;
+            videoPlayer.volume = currentVolume;
+            videoPlayer.muted = wasMuted;
+            videoPlayer.controls = true;
+            
+            // 7. Aplicar estilos para modo normal
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = '100%';
+            videoPlayer.style.position = 'absolute';
+            videoPlayer.style.top = '0';
+            videoPlayer.style.left = '0';
+            
+            isFullscreen = false;
+            
+            // 9. Salir del fullscreen del navegador
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            }
+            
+            // 10. Remover event listeners
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+            
+            console.log('✅ Video devuelto a contenedor normal');
+        }
+
+        function handleFullscreenChange() {
+            var fullscreenElement = document.fullscreenElement || 
+                                   document.webkitFullscreenElement ||
+                                   document.mozFullScreenElement ||
+                                   document.msFullscreenElement;
+            
+            // Si el usuario sale de fullscreen usando la tecla ESC
+            if (!fullscreenElement && isFullscreen) {
+                exitFullscreen();
+            }
+        }
 
         function setupFullscreenChatEvents() {
             var fullscreenMessages = document.getElementById('fullscreenMessages');
@@ -1218,59 +1308,6 @@ fullscreenMessages.innerHTML = normalMessages.innerHTML; // ✅ Limpia + Copia
                 fullscreenScrollBtn.style.display = "none";
         pauseRemoval = false;
             };
-        }
-
-        function handleFullscreenChange() {
-            var fullscreenElement = document.fullscreenElement || 
-                                   document.webkitFullscreenElement ||
-                                   document.mozFullScreenElement ||
-                                   document.msFullscreenElement;
-            
-            if (!fullscreenElement && isFullscreen) {
-                exitFullscreen();
-            }
-        }
-
-        function exitFullscreen() {
-            var videoPlayer = document.getElementById('videoPlayer');
-            var fullscreenVideo = document.getElementById('fullscreenVideo');
-            var fullscreenContainer = document.getElementById('fullscreenContainer');
-            
-            if (fullscreenVideo.src && fullscreenVideo.src !== '') {
-                videoPlayer.src = fullscreenVideo.src;
-                
-                if (hls && hls.media) {
-                    hls.detachMedia();
-                    hls.attachMedia(videoPlayer);
-                }
-                
-                videoPlayer.currentTime = fullscreenVideo.currentTime;
-                
-                if (!fullscreenVideo.paused) {
-                    videoPlayer.play().catch(function(e) {
-                        console.log('Error al reproducir al salir de pantalla completa:', e);
-                    });
-                }
-            }
-            
-            fullscreenContainer.classList.remove('active');
-            document.querySelector('.app-container').style.display = 'flex';
-            isFullscreen = false;
-            
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            }
-            
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
         }
 
         // ========== CHAT MEJORADO ==========
@@ -1514,7 +1551,6 @@ fullscreenMessages.innerHTML = normalMessages.innerHTML; // ✅ Limpia + Copia
         }
 
         // ========== FUNCIONES EXISTENTES DEL STREAM ==========
-        // (Todas las funciones existentes se mantienen igual)
         function scrollToVideoContainer() {
             const videoContainer = document.querySelector('.status');
             if (videoContainer) {
