@@ -241,49 +241,99 @@
             color: white;
         }
         
-        /* ========== BOTONES FULLSCREEN SIMPLE HOVER ========== */
-        .fullscreen-btn, .fullscreen-exit-btn {
+        /* ========== CONTROLES DE VIDEO (CALIDAD + FULLSCREEN) ========== */
+        .video-controls-overlay {
             position: absolute;
             top: 15px;
             right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .video-controls-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .control-btn {
             background: rgba(0, 0, 0, 0.7);
             color: white;
             border: none;
             border-radius: 4px;
             padding: 8px 12px;
             cursor: pointer;
-            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: background 0.2s;
         }
 
-        /* Mostrar botón normal al hover del video container */
-        .video-container:hover .fullscreen-btn {
-            opacity: 1;
+        .control-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
         }
 
-        /* Mostrar botón exit al hover del fullscreen container */
-        .fullscreen-video-section:hover         .fullscreen-exit-btn {
-            opacity: 1;
+        .quality-selector-overlay {
+            position: relative;
         }
 
-        /* Ocultar botón cuando no hay video */
-        .video-container:not(:has(video[style*="display: block"])) .fullscreen-btn {
+        .quality-dropdown-overlay {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 120px;
+            z-index: 1001;
+            margin-top: 5px;
+        }
+
+        .quality-dropdown-overlay.show {
+            display: block;
+        }
+
+        .quality-dropdown-overlay .quality-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: white;
+            border-bottom: 1px solid #555;
+        }
+
+        .quality-dropdown-overlay .quality-option:last-child {
+            border-bottom: none;
+        }
+
+        .quality-dropdown-overlay .quality-option:hover {
+            background: #444;
+        }
+
+        .quality-dropdown-overlay .quality-option.active {
+            background: #6441a5;
+            color: white;
+        }
+
+        /* Ocultar el selector de calidad original */
+        .controls-container .quality-selector {
             display: none;
         }
 
-        /* Ocultar botón en placeholder offline */
-        .video-container:has(.offline-placeholder[style*="display: flex"]) .fullscreen-btn {
-            display: none;
+        /* Botones fullscreen en modo normal y fullscreen */
+        .fullscreen-btn, .fullscreen-exit-btn {
+            position: relative;
+            top: 0;
+            right: 0;
         }
 
-        /* Botón en modo FULLSCREEN */
-        .fullscreen-video-section .fullscreen-exit-btn {
-            z-index: 10001;
+        /* Asegurar que los controles overlay estén por encima del video */
+        .video-container, .fullscreen-video-section {
+            position: relative;
         }
         
         .channel-info { 
@@ -794,11 +844,11 @@
             z-index: 10;
         }
 
-.fullscreen-scroll-bottom-btn:hover {
+        .fullscreen-scroll-bottom-btn:hover {
             background: #4E4F56;
         }
 
-.fullscreen-scroll-bottom-btn i {
+        .fullscreen-scroll-bottom-btn i {
             font-size: 16px;
             margin-right: 8px;
         }
@@ -1065,10 +1115,20 @@
             
             <div class="video-container" id="videoContainer">
                 <video id="videoPlayer" controls style="display: none;"></video>
-                <!-- ✅ BOTÓN DENTRO DEL CONTENEDOR DE VIDEO -->
-                <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">
-                    <i class="fas fa-expand"></i>
-                </button>
+                
+                <!-- ✅ NUEVOS CONTROLES DE VIDEO (CALIDAD + FULLSCREEN) -->
+                <div class="video-controls-overlay" id="videoControlsOverlay">
+                    <div class="quality-selector-overlay">
+                        <button class="control-btn quality-btn-overlay" id="qualityBtnOverlay" title="Calidad">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <div class="quality-dropdown-overlay" id="qualityDropdownOverlay"></div>
+                    </div>
+                    <button class="control-btn fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+                
                 <div id="offlinePlaceholder" class="offline-placeholder">
                     <i class="fas fa-play-circle offline-icon"></i>
                     <div class="offline-channel-name">Stream Player</div>
@@ -1108,11 +1168,18 @@
     <!-- Contenedor para pantalla completa - MODIFICADO -->
     <div class="fullscreen-container" id="fullscreenContainer">
         <div class="fullscreen-video-section">
-            <!-- ✅ EL VIDEO PRINCIPAL SE MOVERÁ AQUÍ -->
-            <!-- ✅ BOTÓN DENTRO DE LA SECCIÓN DE VIDEO FULLSCREEN -->
-            <button class="fullscreen-exit-btn" onclick="toggleFullscreen()" title="Salir de Pantalla Completa">
-                <i class="fas fa-compress"></i>
-            </button>
+            <!-- ✅ NUEVOS CONTROLES DE VIDEO EN FULLSCREEN -->
+            <div class="video-controls-overlay" id="fullscreenVideoControlsOverlay">
+                <div class="quality-selector-overlay">
+                    <button class="control-btn quality-btn-overlay" id="qualityBtnOverlayFullscreen" title="Calidad">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <div class="quality-dropdown-overlay" id="qualityDropdownOverlayFullscreen"></div>
+                </div>
+                <button class="control-btn fullscreen-exit-btn" onclick="toggleFullscreen()" title="Salir de Pantalla Completa">
+                    <i class="fas fa-compress"></i>
+                </button>
+            </div>
         </div>
         <div class="fullscreen-chat-section">
             <div class="titulo">Chat</div>
@@ -1137,6 +1204,10 @@
         var currentChannel = '';
         var currentLevels = [];       
         var isFullscreen = false;
+        
+        // Variables para controles de video
+        var controlsTimer = null;
+        var isMouseOverControls = false;
         
         // Variables del chat
         var ws = null;
@@ -1179,32 +1250,31 @@
             var currentVolume = videoPlayer.volume;
             var wasMuted = videoPlayer.muted;
             
-            // 3. MOVER el video al contenedor de fullscreen
+            // 2. MOVER el video al contenedor de fullscreen
             fullscreenVideoSection.appendChild(videoPlayer);
             
-            // 4. Aplicar clases de estilo fullscreen
+            // 3. Aplicar clases de estilo fullscreen
             videoPlayer.classList.add('fullscreen-mode');
             
-            // 5. Mostrar contenedor fullscreen
+            // 4. Mostrar contenedor fullscreen
             fullscreenContainer.classList.add('active');
             document.querySelector('.app-container').style.display = 'none';
             
-            // 6. Restaurar propiedades del video
+            // 5. Restaurar propiedades del video
             videoPlayer.currentTime = currentTime;
             videoPlayer.volume = currentVolume;
             videoPlayer.muted = wasMuted;
             videoPlayer.controls = true;
 
-            // ✅ AGREGAR ESTO:
-// 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
-if (wasPlaying) {
-    videoPlayer.play().catch(function(e) {
-        console.log('⚠️ No se pudo reanudar:', e);
-        videoPlayer.controls = true;
-    });
-}
+            // 6. FORZAR REPRODUCCIÓN si estaba reproduciéndose
+            if (wasPlaying) {
+                videoPlayer.play().catch(function(e) {
+                    console.log('⚠️ No se pudo reanudar:', e);
+                    videoPlayer.controls = true;
+                });
+            }
             
-            // 8. Sincronizar chat
+            // 7. Sincronizar chat
             var fullscreenMessages = document.getElementById("fullscreenMessages");
             var normalMessages = document.getElementById("messages");
             fullscreenMessages.innerHTML = normalMessages.innerHTML;
@@ -1220,6 +1290,11 @@ if (wasPlaying) {
             }, 100);
             
             isFullscreen = true;
+            
+            // 10. Mostrar controles en fullscreen
+            setTimeout(function() {
+                showVideoControls();
+            }, 100);
             
             // 11. Activar fullscreen del navegador
             var elem = fullscreenContainer;
@@ -1255,32 +1330,31 @@ if (wasPlaying) {
             var currentVolume = videoPlayer.volume;
             var wasMuted = videoPlayer.muted;
             
-            // 3. MOVER el video de vuelta al contenedor original
+            // 2. MOVER el video de vuelta al contenedor original
             videoContainer.appendChild(videoPlayer);
             
-            // 4. Remover clases de estilo fullscreen
+            // 3. Remover clases de estilo fullscreen
             videoPlayer.classList.remove('fullscreen-mode');
             
-            // 5. Ocultar contenedor fullscreen
+            // 4. Ocultar contenedor fullscreen
             fullscreenContainer.classList.remove('active');
             document.querySelector('.app-container').style.display = 'flex';
             
-            // 6. Restaurar propiedades del video
+            // 5. Restaurar propiedades del video
             videoPlayer.currentTime = currentTime;
             videoPlayer.volume = currentVolume;
             videoPlayer.muted = wasMuted;
             videoPlayer.controls = true;
 
-           // ✅ AGREGAR ESTO:
-// 7. FORZAR REPRODUCCIÓN si estaba reproduciéndose
-if (wasPlaying) {
-    videoPlayer.play().catch(function(e) {
-        console.log('⚠️ No se pudo reanudar:', e);
-        videoPlayer.controls = true;
-    });
-}
+            // 6. FORZAR REPRODUCCIÓN si estaba reproduciéndose
+            if (wasPlaying) {
+                videoPlayer.play().catch(function(e) {
+                    console.log('⚠️ No se pudo reanudar:', e);
+                    videoPlayer.controls = true;
+                });
+            }
             
-            // 8. Aplicar estilos para modo normal
+            // 7. Aplicar estilos para modo normal
             videoPlayer.style.width = '100%';
             videoPlayer.style.height = '100%';
             videoPlayer.style.position = 'absolute';
@@ -1288,6 +1362,11 @@ if (wasPlaying) {
             videoPlayer.style.left = '0';
             
             isFullscreen = false;
+            
+            // 8. Mostrar controles en modo normal
+            setTimeout(function() {
+                showVideoControls();
+            }, 100);
             
             // 9. Salir del fullscreen del navegador
             if (document.exitFullscreen) {
@@ -1319,6 +1398,264 @@ if (wasPlaying) {
             if (!fullscreenElement && isFullscreen) {
                 exitFullscreen();
             }
+        }
+
+        // ========== CONTROLES DE VIDEO ==========
+        function showVideoControls() {
+            var overlay = isFullscreen ? 
+                document.getElementById('fullscreenVideoControlsOverlay') : 
+                document.getElementById('videoControlsOverlay');
+            
+            if (overlay) {
+                overlay.classList.add('visible');
+                resetControlsTimer();
+            }
+        }
+
+        function hideVideoControls() {
+            var overlay = isFullscreen ? 
+                document.getElementById('fullscreenVideoControlsOverlay') : 
+                document.getElementById('videoControlsOverlay');
+            
+            if (overlay && !isMouseOverControls) {
+                overlay.classList.remove('visible');
+            }
+        }
+
+        function resetControlsTimer() {
+            clearTimeout(controlsTimer);
+            controlsTimer = setTimeout(hideVideoControls, 3000);
+        }
+
+        function setupVideoControlsEvents() {
+            var videoContainer = document.getElementById('videoContainer');
+            var fullscreenVideoSection = document.querySelector('.fullscreen-video-section');
+            
+            // Eventos para contenedor normal
+            if (videoContainer) {
+                videoContainer.addEventListener('mousemove', function() {
+                    if (!isFullscreen) showVideoControls();
+                });
+                
+                videoContainer.addEventListener('mouseleave', function() {
+                    if (!isFullscreen) hideVideoControls();
+                });
+            }
+            
+            // Eventos para contenedor fullscreen
+            if (fullscreenVideoSection) {
+                fullscreenVideoSection.addEventListener('mousemove', function() {
+                    if (isFullscreen) showVideoControls();
+                });
+                
+                fullscreenVideoSection.addEventListener('mouseleave', function() {
+                    if (isFullscreen) hideVideoControls();
+                });
+            }
+            
+            // Mantener controles visibles cuando el mouse está sobre ellos
+            var controlOverlays = document.querySelectorAll('.video-controls-overlay');
+            controlOverlays.forEach(function(overlay) {
+                overlay.addEventListener('mouseenter', function() {
+                    isMouseOverControls = true;
+                    clearTimeout(controlsTimer);
+                });
+                
+                overlay.addEventListener('mouseleave', function() {
+                    isMouseOverControls = false;
+                    resetControlsTimer();
+                });
+            });
+        }
+
+        // ========== ACTUALIZAR SELECTOR DE CALIDAD OVERLAY ==========
+        function updateOverlayQualityDropdown() {
+            if (!hls || !hls.levels || hls.levels.length === 0) {
+                console.log('No hay niveles de calidad disponibles para overlay');
+                return;
+            }
+            
+            // Actualizar dropdown normal
+            var qualityDropdownOverlay = document.getElementById('qualityDropdownOverlay');
+            if (qualityDropdownOverlay) {
+                updateSingleQualityDropdown(qualityDropdownOverlay);
+            }
+            
+            // Actualizar dropdown fullscreen
+            var qualityDropdownOverlayFullscreen = document.getElementById('qualityDropdownOverlayFullscreen');
+            if (qualityDropdownOverlayFullscreen) {
+                updateSingleQualityDropdown(qualityDropdownOverlayFullscreen);
+            }
+        }
+
+        function updateSingleQualityDropdown(dropdownElement) {
+            if (!hls || !hls.levels) return;
+            
+            dropdownElement.innerHTML = '';
+            currentLevels = hls.levels;
+            
+            var autoOption = document.createElement('div');
+            autoOption.className = 'quality-option';
+            autoOption.textContent = 'Auto';
+            autoOption.setAttribute('data-level', '-1');
+            if (hls.currentLevel === -1) autoOption.classList.add('active');
+            autoOption.onclick = function() { 
+                changeQuality(-1);
+                hideAllQualityDropdowns();
+            };
+            dropdownElement.appendChild(autoOption);
+            
+            for (var i = 0; i < currentLevels.length; i++) {
+                var level = currentLevels[i];
+                var label = getQualityLabel(level);
+                var option = document.createElement('div');
+                option.className = 'quality-option';
+                option.textContent = label;
+                option.setAttribute('data-level', i.toString());
+                if (hls.currentLevel === i) option.classList.add('active');
+                option.onclick = (function(levelIndex) {
+                    return function() { 
+                        changeQuality(levelIndex);
+                        hideAllQualityDropdowns();
+                    };
+                })(i);
+                dropdownElement.appendChild(option);
+            }
+        }
+
+        function hideAllQualityDropdowns() {
+            var dropdowns = document.querySelectorAll('.quality-dropdown-overlay');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.classList.remove('show');
+            });
+        }
+
+        // ========== TOGGLE DROPDOWN DE CALIDAD OVERLAY ==========
+        function toggleOverlayQualityDropdown(dropdownId) {
+            var dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+                
+                // Cerrar otros dropdowns
+                var allDropdowns = document.querySelectorAll('.quality-dropdown-overlay');
+                allDropdowns.forEach(function(otherDropdown) {
+                    if (otherDropdown !== dropdown) {
+                        otherDropdown.classList.remove('show');
+                    }
+                });
+            }
+        }
+
+        // ========== CONFIGURAR EVENTOS DE BOTONES OVERLAY ==========
+        function setupOverlayQualityButtons() {
+            // Botón de calidad normal
+            var qualityBtnOverlay = document.getElementById('qualityBtnOverlay');
+            if (qualityBtnOverlay) {
+                qualityBtnOverlay.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleOverlayQualityDropdown('qualityDropdownOverlay');
+                    resetControlsTimer();
+                });
+            }
+            
+            // Botón de calidad fullscreen
+            var qualityBtnOverlayFullscreen = document.getElementById('qualityBtnOverlayFullscreen');
+            if (qualityBtnOverlayFullscreen) {
+                qualityBtnOverlayFullscreen.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleOverlayQualityDropdown('qualityDropdownOverlayFullscreen');
+                    resetControlsTimer();
+                });
+            }
+            
+            // Cerrar dropdowns al hacer clic fuera
+            document.addEventListener('click', function(event) {
+                var qualityDropdownOverlay = document.getElementById('qualityDropdownOverlay');
+                var qualityBtnOverlay = document.getElementById('qualityBtnOverlay');
+                var qualityDropdownOverlayFullscreen = document.getElementById('qualityDropdownOverlayFullscreen');
+                var qualityBtnOverlayFullscreen = document.getElementById('qualityBtnOverlayFullscreen');
+                
+                if (qualityDropdownOverlay && qualityBtnOverlay && 
+                    !qualityBtnOverlay.contains(event.target) && 
+                    !qualityDropdownOverlay.contains(event.target)) {
+                    qualityDropdownOverlay.classList.remove('show');
+                }
+                
+                if (qualityDropdownOverlayFullscreen && qualityBtnOverlayFullscreen && 
+                    !qualityBtnOverlayFullscreen.contains(event.target) && 
+                    !qualityDropdownOverlayFullscreen.contains(event.target)) {
+                    qualityDropdownOverlayFullscreen.classList.remove('show');
+                }
+            });
+        }
+
+        // ========== MODIFICAR LA FUNCIÓN changeQuality ==========
+        function changeQuality(levelIndex) {
+            if (!hls) return;
+            hls.currentLevel = levelIndex;
+            
+            // Actualizar todos los dropdowns
+            var allDropdowns = document.querySelectorAll('.quality-dropdown, .quality-dropdown-overlay');
+            for (var i = 0; i < allDropdowns.length; i++) {
+                var options = allDropdowns[i].querySelectorAll('.quality-option');
+                for (var j = 0; j < options.length; j++) {
+                    options[j].classList.remove('active');
+                    if (parseInt(options[j].getAttribute('data-level')) === levelIndex) {
+                        options[j].classList.add('active');
+                    }
+                }
+            }
+            
+            console.log('Calidad cambiada a nivel: ' + levelIndex);
+        }
+
+        // ========== MODIFICAR LA FUNCIÓN updateQualityDropdown ==========
+        function updateQualityDropdown() {
+            if (!hls || !hls.levels || hls.levels.length === 0) {
+                console.log('No hay niveles de calidad disponibles');
+                return;
+            }
+            
+            var qualityDropdown = document.getElementById('qualityDropdown');
+            currentLevels = hls.levels;
+            qualityDropdown.innerHTML = '';
+            
+            var autoOption = document.createElement('div');
+            autoOption.className = 'quality-option';
+            autoOption.textContent = 'Auto';
+            autoOption.setAttribute('data-level', '-1');
+            if (hls.currentLevel === -1) autoOption.classList.add('active');
+            autoOption.onclick = function() { changeQuality(-1); };
+            qualityDropdown.appendChild(autoOption);
+            
+            for (var i = 0; i < currentLevels.length; i++) {
+                var level = currentLevels[i];
+                var label = getQualityLabel(level);
+                var option = document.createElement('div');
+                option.className = 'quality-option';
+                option.textContent = label;
+                option.setAttribute('data-level', i.toString());
+                if (hls.currentLevel === i) option.classList.add('active');
+                option.onclick = (function(levelIndex) {
+                    return function() { changeQuality(levelIndex); };
+                })(i);
+                qualityDropdown.appendChild(option);
+            }
+            
+            // Actualizar también los dropdowns overlay
+            updateOverlayQualityDropdown();
+        }
+
+        function getQualityLabel(level) {
+            if (level.height) return level.height + 'p';
+            else if (level.name) return level.name;
+            else if (level.bitrate) return Math.round(level.bitrate / 1000) + ' kbps';
+            else return 'Nivel ' + level.id;
+        }
+
+        function toggleQualityDropdown() {
+            var dropdown = document.getElementById('qualityDropdown');
+            dropdown.classList.toggle('show');
         }
 
         function setupFullscreenChatEvents() {
@@ -1588,40 +1925,40 @@ if (wasPlaying) {
             };
         }
 
-         // ========== CONTROL DE COMPORTAMIENTO DEL INPUT ==========
-function setupChannelInputBehavior() {
-    var channelInput = document.getElementById('channelInput');
-    
-    channelInput.addEventListener('focus', function() {
-        // Solo borrar si el texto fue puesto por script hace más de 500ms
-        if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
-            this.value = '';
-            inputTextFromScript = false;
-        } else {
-            // Poner cursor al final para texto manual
-            this.setSelectionRange(this.value.length, this.value.length);
+        // ========== CONTROL DE COMPORTAMIENTO DEL INPUT ==========
+        function setupChannelInputBehavior() {
+            var channelInput = document.getElementById('channelInput');
+            
+            channelInput.addEventListener('focus', function() {
+                // Solo borrar si el texto fue puesto por script hace más de 500ms
+                if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
+                    this.value = '';
+                    inputTextFromScript = false;
+                } else {
+                    // Poner cursor al final para texto manual
+                    this.setSelectionRange(this.value.length, this.value.length);
+                }
+            });
+            
+            channelInput.addEventListener('click', function() {
+                if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
+                    this.value = '';
+                    inputTextFromScript = false;
+                }
+            });
+            
+            channelInput.addEventListener('input', function() {
+                inputTextFromScript = false;
+            });
         }
-    });
-    
-    channelInput.addEventListener('click', function() {
-        if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
-            this.value = '';
-            inputTextFromScript = false;
-        }
-    });
-    
-    channelInput.addEventListener('input', function() {
-        inputTextFromScript = false;
-    });
-}
 
-function setChannelInput(value, fromScript) {
-    var channelInput = document.getElementById('channelInput');
-    channelInput.value = value;
-    inputTextFromScript = fromScript || false;
-    lastSetTime = Date.now(); // Registrar cuándo se puso el texto
-}
-      
+        function setChannelInput(value, fromScript) {
+            var channelInput = document.getElementById('channelInput');
+            channelInput.value = value;
+            inputTextFromScript = fromScript || false;
+            lastSetTime = Date.now(); // Registrar cuándo se puso el texto
+        }
+        
         // ========== FUNCIONES EXISTENTES DEL STREAM ==========
         function scrollToVideoContainer() {
             const videoContainer = document.querySelector('.status');
@@ -1851,6 +2188,13 @@ function setChannelInput(value, fromScript) {
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     console.log('Manifiesto HLS cargado correctamente (proxy)');
                     updateQualityDropdown();
+                    updateOverlayQualityDropdown();
+                    
+                    // Mostrar controles cuando el video se carga
+                    setTimeout(function() {
+                        showVideoControls();
+                    }, 500);
+                    
                     video.play().catch(function(e) {
                         console.log('Auto-play bloqueado (proxy):', e);
                         updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
@@ -1895,65 +2239,6 @@ function setChannelInput(value, fromScript) {
             video.addEventListener('playing', function() {
                 updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
             });   
-        }
-
-        function updateQualityDropdown() {
-            if (!hls || !hls.levels || hls.levels.length === 0) {
-                console.log('No hay niveles de calidad disponibles');
-                return;
-            }
-            
-            var qualityDropdown = document.getElementById('qualityDropdown');
-            currentLevels = hls.levels;
-            qualityDropdown.innerHTML = '';
-            
-            var autoOption = document.createElement('div');
-            autoOption.className = 'quality-option';
-            autoOption.textContent = 'Auto';
-            autoOption.setAttribute('data-level', '-1');
-            if (hls.currentLevel === -1) autoOption.classList.add('active');
-            autoOption.onclick = function() { changeQuality(-1); };
-            qualityDropdown.appendChild(autoOption);
-            
-            for (var i = 0; i < currentLevels.length; i++) {
-                var level = currentLevels[i];
-                var label = getQualityLabel(level);
-                var option = document.createElement('div');
-                option.className = 'quality-option';
-                option.textContent = label;
-                option.setAttribute('data-level', i.toString());
-                if (hls.currentLevel === i) option.classList.add('active');
-                option.onclick = (function(levelIndex) {
-                    return function() { changeQuality(levelIndex); };
-                })(i);
-                qualityDropdown.appendChild(option);
-            }
-        }
-
-        function getQualityLabel(level) {
-            if (level.height) return level.height + 'p';
-            else if (level.name) return level.name;
-            else if (level.bitrate) return Math.round(level.bitrate / 1000) + ' kbps';
-            else return 'Nivel ' + level.id;
-        }
-
-        function changeQuality(levelIndex) {
-            if (!hls) return;
-            hls.currentLevel = levelIndex;
-            var options = document.querySelectorAll('.quality-option');
-            for (var i = 0; i < options.length; i++) {
-                options[i].classList.remove('active');
-                if (parseInt(options[i].getAttribute('data-level')) === levelIndex) {
-                    options[i].classList.add('active');
-                }
-            }
-            document.getElementById('qualityDropdown').classList.remove('show');
-            console.log('Calidad cambiada a nivel: ' + levelIndex);
-        }
-
-        function toggleQualityDropdown() {
-            var dropdown = document.getElementById('qualityDropdown');
-            dropdown.classList.toggle('show');
         }
 
         function showOfflinePlaceholder(channelInfo) {
@@ -2257,6 +2542,14 @@ function setChannelInput(value, fromScript) {
             setupNormalChatEvents();
             
             setupChannelInputBehavior();
+            
+            // Configurar eventos de botones overlay
+            setupOverlayQualityButtons();
+            setupVideoControlsEvents();
+            
+            // Ocultar controles al inicio
+            hideVideoControls();
+            
             document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
             document.addEventListener('click', function(event) {
                 var qualityBtn = document.getElementById('qualityBtn');
