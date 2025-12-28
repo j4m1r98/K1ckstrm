@@ -1,2567 +1,708 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Stream Player</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Videos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 🔹 Video.js CSS -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+    <!-- 🔹 Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        :root {
-            --right-column-width: 320px;
-        }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0;
-            background: #0f0f0f; 
-            color: white; 
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .app-container {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-        
-        /* Columna central - Video y canales */
-        .center-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px 15px 15px 0;
-            overflow-y: auto;
-            box-sizing: border-box;
-            min-width: 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        
-        .center-column::-webkit-scrollbar {
-            display: none;
-        }
-        
-        /* Título centrado */
-        .title-container {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 10px;
-        }
-        
-        .title-container h1 {
-            font-size: 24px;
+        * {
             margin: 0;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .title-container h1 i {
-            margin-right: 12px;
-            color: #6441a5;
-            font-size: 28px;
-        }
-        
-        /* Controles */
-        .controls-container {           
-            gap: 10px;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: #1a1a1a;
-            border-radius: 8px;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .controls { 
-            display: flex;    
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .controls input {
+            padding: 0;
             box-sizing: border-box;
-            min-width: 150px;
+            font-family: 'Arial', sans-serif;
         }
-                      
-        .quality-selector {
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;            
+            padding: 20px;
+        }
+                
+        h1 {
+            font-size: 2.5rem;            
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-top: 20px;
+            margin-bottom: 25px;
+        }
+        
+        /* Reproductor de video */
+        .video-player {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             position: relative;
-            display: inline-block;
-        }               
-        
-        .status { 
-            padding: 10px; 
-            margin-bottom: 15px; 
-            border-radius: 4px; 
         }
-        .success { background: #1a3c1a; color: #4CAF50; }
-        .error { background: #3c1a1a; color: #f44336; }
-        .loading { background: #1a1a3c; color: #2196F3; }
         
-        .video-container {
+        .video-controls-top {
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .player-container {
             position: relative;
             width: 100%;
             height: 0;
-            padding-top: 56.25%;
-            background: black;           
-            margin-bottom: 15px;
+            padding-bottom: 56.25%; /* 16:9 */
         }
         
-        video { 
+        #playerWrapper {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: black;            
         }
         
-        .offline-placeholder {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .video-controls-bottom {
+            background: rgba(0,0,0,0.8);
             padding: 20px;
-            box-sizing: border-box;
             text-align: center;
         }
-
-        .offline-icon {
-            font-size: 64px;
-            color: #ccc;
-            margin-bottom: 20px;
-        }
-
-        .offline-channel-name {
-            font-size: 24px;
+        
+        .video-title {
+            font-size: 1.3rem;
             font-weight: bold;
-            margin: 0 0 10px 0;
-            color: white;
+            margin-bottom: 15px;
+            color: #4ecdc4;
         }
-
-        .offline-status {
-            font-size: 18px;
-            color: #ccc;
-            margin-bottom: 8px;
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;           
+            margin-top: 10px;
         }
-
-        .offline-last-time {
-            font-size: 14px;
-            color: #aaa;
-            margin-bottom: 20px;
-        }
-
-        .offline-btn {
-            background: #6441a5;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        
+        .nav-button {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
             border-radius: 8px;
+            padding: 10px 20px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600; 
-            display: flex;
-            align-items: center;   
-        }
-
-        .offline-btn i {
-            margin-right: 8px;
-        }
-        .offline-btn:hover {
-            background: #7a52c4;
-        }
-             
-        select, button, input { 
-            padding: 8px 12px; 
-            margin: 5px;
-            background: #333; 
-            color: white; 
-            border: 1px solid #555; 
-            border-radius: 4px; 
-        }
-        button { 
-            background: #6441a5; 
-            cursor: pointer; 
-        }
-        button:hover { background: #7a52c4; }
-        
-        .quality-btn {
-            background: #6441a5;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-        .quality-btn .fa-cog {
-            margin-right: 8px;
-        }
-        .quality-btn .fa-chevron-down {
-            margin-left: 8px;
-        }
-        .quality-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 4px;
-            min-width: 120px;
-            z-index: 1000;
-            margin-top: 5px;
-        }
-        .quality-dropdown.show {
-            display: block;
-        }
-        .quality-option {
-            padding: 8px 12px;
-            cursor: pointer;
-            color: white;
-            border-bottom: 1px solid #555;
-        }
-        .quality-option:last-child {
-            border-bottom: none;
-        }
-        .quality-option:hover {
-            background: #444;
-        }
-        .quality-option.active {
-            background: #6441a5;
-            color: white;
-        }
-        
-        /* ========== CONTROLES DE VIDEO (CALIDAD + FULLSCREEN) ========== */
-        .video-controls-overlay {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .video-controls-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .control-btn {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: background 0.2s;
-        }
-
-        .control-btn:hover {
-            background: rgba(0, 0, 0, 0.9);
-        }
-
-        .quality-selector-overlay {
-            position: relative;
-        }
-
-        .quality-dropdown-overlay {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 4px;
-            min-width: 120px;
-            z-index: 1001;
-            margin-top: 5px;
-        }
-
-        .quality-dropdown-overlay.show {
-            display: block;
-        }
-
-        .quality-dropdown-overlay .quality-option {
-            padding: 8px 12px;
-            cursor: pointer;
-            color: white;
-            border-bottom: 1px solid #555;
-        }
-
-        .quality-dropdown-overlay .quality-option:last-child {
-            border-bottom: none;
-        }
-
-        .quality-dropdown-overlay .quality-option:hover {
-            background: #444;
-        }
-
-        .quality-dropdown-overlay .quality-option.active {
-            background: #6441a5;
-            color: white;
-        }
-
-        /* Ocultar el selector de calidad original */
-        .controls-container .quality-selector {
-            display: none;
-        }
-
-        /* Botones fullscreen en modo normal y fullscreen */
-        .fullscreen-btn, .fullscreen-exit-btn {
-            position: relative;
-            top: 0;
-            right: 0;
-        }
-
-        /* Asegurar que los controles overlay estén por encima del video */
-        .video-container, .fullscreen-video-section {
-            position: relative;
-        }
-        
-        .channel-info { 
-            display: none;
-            margin-bottom: 15px; 
-            padding: 15px; 
-            background: #1a1a1a; 
-            border-radius: 8px; 
-            transition: opacity 0.3s ease;
-        }
-        .channel-main-info {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        .channel-profile-container {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        .channel-profile-pic {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 15px;
-            border: 2px solid #6441a5;
-        }
-        .profile-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 15px;
-            border: 2px solid #6441a5;
-            background: #2a2a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: #6441a5;
-        }
-        .channel-text-info {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            position: relative;
-        }
-        .channel-name-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 5px;
-        }
-        .channel-name {
-            font-size: 18px;
+            transition: all 0.3s ease;
             font-weight: bold;
             display: flex;
-            align-items: center;
-            grid-gap: 6px;
-            margin-right: 6px;
-        }
-        .verified-badge {
-            width: 19px;
-            height: 19px;
-        }
-        .channel-title {
-            color: #ccc;
-            font-size: 14px;
-        }
-        .channel-viewers {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #aaa;
-        }
-        .viewers-count {
-            margin-left: 8px;
-            font-weight: 500;
-        }
-        .offline-time {
-            color: #aaa;
-            font-size: 14px;           
-        }
-        
-        /* Estilos para la lista de canales */
-        .channels-list { 
-            margin-bottom: 15px; 
-            background: #1a1a1a; 
-            border-radius: 8px; 
-            padding: 15px; 
-        }
-        .channels-header {
-            display: flex;
-            justify-content: space-between;
+            margin: 0 10px;
             align-items: center;            
+            min-width: 120px;
         }
-        .channels-header h2 {
-            margin: 15px 0;
+        
+        .nav-button:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
         }
-        .refresh-btn {
-            background: #6441a5;
+        
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .nav-button.prev {
+            border-color: #ff6b6b;
             color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
         }
-        .refresh-btn i {
-            margin-right: 5px;
+        
+        .nav-button.next {
+            border-color: #4ecdc4;
+            color: white;
         }
-        .refresh-btn:hover {
-            background: #7a52c4;
-        }
-        .tabs-container { 
+        
+        /* Lista de capítulos */
+        .episodes-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            grid-gap: 15px;
-            gap: 15px;
-            margin: 15px 0; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            margin-top: 20px;
         }
-        .channel-tab { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            background: #2a2a2a; 
-            border-radius: 8px; 
-            padding: 15px 10px; 
-            width: 100%; 
-            text-align: center;             
-            box-sizing: border-box;
+        
+        .episode-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }        
+       
+        .episode-card:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
-        .channel-tab:hover { 
-            background: #3a3a3a; 
+        
+        .episode-number {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4ecdc4;
         }
-        .channel-tab.active { 
-            border: 2px solid #6441a5; 
-        }
-        .channel-img { 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 50%; 
-            object-fit: cover; 
-            margin-bottom: 15px; 
-            border: 2px solid #6441a5;
-        }
-        .channel-img-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-bottom: 14px;
-            border: 2px solid #6441a5;
-            background: #2a2a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: #6441a5;
-        }
-        .channel-name-tab { 
-            font-size: 14px; 
+        
+        .episode-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
             font-weight: 600;
-            margin-bottom: 14px; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            width: 100%; 
+        }
+        
+        .episode-duration {
+            font-size: 0.9rem;
+            opacity: 0.7;
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-        .channel-status {
-            display: flex;
-            align-items: center;
-            font-size: 12px;
-            margin-bottom: 14px;
-            width: 100%;
-            justify-content: center;
-        }
-        .channel-status.online {
-            color: #ccc;
-        }
-        .channel-status.offline {
-            color: #f44336;
-        }
-        .channel-status i {
-            margin-right: 4px;
-            font-size: 10px;
-        }
-        .view-btn { 
-            background: #6441a5; 
-            border: none; 
-            color: white; 
-            padding: 5px 10px; 
-            margin: 0;
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 12px; 
-            font-weight: 500;
-            width: 100%; 
-        }
-        .view-btn i { 
-            margin-right: 3px;
-        }
-        .view-btn:hover { 
-            background: #7a52c4; 
-        }
-        .view-btn.offline { 
-            background: transparent;
-            font-weight: 500; 
-            border: 0; 
-            color: #ffffff; 
-        }
-        .view-btn.offline:hover { 
-            background: none; 
-            color: white; 
-        }
-        .delete-btn { 
-            position: absolute; 
-            top: 6px; 
-            right: 6px; 
-            background: rgba(0,0,0,0.7); 
-            border: none; 
-            color: white; 
-            border-radius: 50%; 
-            width: 22px; 
-            height: 22px;
-            padding: 0;
-            margin: 0;
-            cursor: pointer; 
-            font-size: 12px;            
-            align-items: center; 
-            justify-content: center; 
-        }
-        .channel-tab-wrapper .delete-btn {
-            display: none;
-        }
-        .channel-tab-wrapper:hover .delete-btn {
-            display: flex;
-        }
-        .channel-tab-wrapper { 
-            position: relative; 
-            min-width: 0;
-        }
-        .empty-list { 
-            text-align: center; 
-            display: flex;
-            flex-direction: column;
-            grid-column: 1 / -1;
-            padding: 20px; 
-            color: #888; 
-        }
-        .empty-list i {
-            margin-bottom: 12px;
-            font-size: 20px;  
-        } 
- 
-        /* Columna derecha - Chat */
-        .right-column {
-            width: var(--right-column-width);
-            background: #0d1117;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+            gap: 5px;
         }
         
-        .titulo {
-            padding: 8px 12px;
-            background: #161b22;
-            border-bottom: 2px solid #30363d;
-            text-align: center;
-            font-size: 1rem;
-            line-height: 1.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0;
+        .episode-type {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
         }
         
-        #messages-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            padding: 12px 0;
-            min-width: 0;
-            min-height: 0;
-            overflow: hidden;
+        .video-type {
+            color: #4ecdc4;
         }
         
-        #messages {
-            flex: 1; 
-            overflow: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-right: 5px;
+        .iframe-type {
+            color: #ff6b6b;
         }
         
-        #messages::-webkit-scrollbar {
-            width: 6px;
-            display: none;
-        }
-        
-        #messages:hover::-webkit-scrollbar {
-            display: block;
-        }
-        
-        #messages::-webkit-scrollbar-track {
-            background: #161b22;
-            border-radius: 3px;
-        }
-        
-        #messages::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 3px;
-        }
-        
-        #messages::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
+        .play-icon {
+            width: 16px;
+            height: 16px;
         }
 
-        /* Mensajes */
-        .msg {
-            color: #ffffff;
-            font-weight: 500;
-            font-size: 1rem;
-            line-height: 1.25rem;
-            margin: 0 6px;
-            margin-top: 2px;
-            padding: 4px 8px;
-        }
-        
-        .username {
-            font-size: 1rem;
-            line-height: 1.25rem;
-            font-weight: 700;  
-            white-space: normal;
-        }
-        
-        .colon {
-            color: #ffffff;
-            font-size: 1rem;
-            line-height: 1.25rem;
-            font-weight: 900;
-            margin-right: 2px;
-            white-space: normal;
-        }
-        
-        .msg span:last-child {
-            word-break: break-word;
-        }
-        
-        .chat-emote {
-            height: 20px;
-            margin: 0 2px;
+        /* 🔹 Estilos para botones de salto en barra de Video.js */
+        .vjs-skip-back .material-icons,
+        .vjs-skip-forward .material-icons {
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
             vertical-align: middle;
-            image-rendering: pixelated;
         }
 
-        /* Botón scroll */
-        #scrollBottomBtn {  
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 78%;
-            max-width: 400px;
-            background: #3A3B40;
-            color: #ffffff;
-            font-size: 14px;
-            align-items: center;
-            justify-content: center;
-            display: flex;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 10px;
-            font-weight: 700;
-            cursor: pointer;
-            display: none;
-            z-index: 10;
-        }
-        
-        #scrollBottomBtn:hover {
-            background: #4E4F56;
-        }
-
-        #scrollBottomBtn i {
-            font-size: 16px;
-            margin-right: 8px;
-        }
-        
-        .footer {
-            padding: 8px;
-            border-top: 1px solid #30363d;
-            background: #161b22;
-            text-align: center;
-            font-size: 12px;
-            color: #8b949e
-        }
-
-        /* ========== ESTILOS MEJORADOS PANTALLA COMPLETA ========== */
-        .fullscreen-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #000;
-            z-index: 9999;
-            display: none;
-            flex-direction: row;
-        }
-        
-        .fullscreen-container.active {
-            display: flex;
-        }
-        
-        .fullscreen-video-section {
-            flex: 1;
-            position: relative;
-            background: #000;
+        .vjs-control-bar .vjs-skip-back,
+        .vjs-control-bar .vjs-skip-forward {
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 34px;
+            padding: 0;
         }
         
-        /* Video cuando está en modo fullscreen */
-        .fullscreen-container .video-player {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            object-fit: contain;
-            position: relative !important;
-        }
-        
-        .fullscreen-chat-section {
-            width: var(--right-column-width);
-            background: #0d1117;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        
-        .fullscreen-messages-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            padding: 12px 0;
-            min-width: 0;
-            min-height: 0;
-            overflow: hidden;
-        }
-        
-        .fullscreen-messages {
-            flex: 1; 
-            overflow: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-right: 5px;
-        }
-        
-        .fullscreen-messages::-webkit-scrollbar {
-            width: 6px;
-            display: none;
-        }
-        
-        .fullscreen-messages:hover::-webkit-scrollbar {
-            display: block;
-        }
-        
-        .fullscreen-messages::-webkit-scrollbar-track {
-            background: #161b22;
-            border-radius: 3px;
-        }
-        
-        .fullscreen-messages::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 3px;
-        }
-        
-        .fullscreen-messages::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-        
-        .fullscreen-scroll-bottom-btn {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 78%;
-            max-width: 400px;
-            background: #3A3B40;
-            color: #ffffff;
-            font-size: 14px;
-            align-items: center;
-            justify-content: center;
-            display: flex;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 10px;
-            font-weight: 700;
-            cursor: pointer;
-            display: none;
-            z-index: 10;
-        }
-
-        .fullscreen-scroll-bottom-btn:hover {
-            background: #4E4F56;
-        }
-
-        .fullscreen-scroll-bottom-btn i {
-            font-size: 16px;
-            margin-right: 8px;
-        }
-
-        /* Clase temporal para debug */
-        .video-player.fullscreen-mode {
-            border: 2px solid #6441a5 !important;
-        }
-
-        /* Responsive para tablets */
-        @media (max-width: 1024px) {
-            :root {
-                --right-column-width: 280px;
-            }
-            
-            .offline-placeholder {
-                padding: 15px;
-            }
-    
-            .offline-icon {
-                font-size: 36px;
-                margin-bottom: 12px;
-            }
-    
-            .offline-channel-name {
-                font-size: 20px;
-                margin: 0 0 8px 0;
-            }
-    
-            .offline-status {
-                font-size: 16px;
-                margin-bottom: 6px;
-            }
-    
-            .offline-last-time {
-                font-size: 13px;
-                margin-bottom: 12px;
-            }
-    
-            .offline-btn {
-                padding: 8px 16px;
-                font-size: 16px;
-            }
-            .delete-btn {
-                display: flex;
-            }
-        }
-
-        /* Responsive para móviles */
+        /* Responsive */
         @media (max-width: 768px) {
-            :root {
-                --right-column-width: 100% !important;
-            }
-
-            .app-container {
-                flex-direction: column;
-                height: 100vh;
-                overflow-y: auto;
-            }
-            
-            .center-column, .right-column {
-                width: 100%;
-                padding: 0;                       
-            }
-            
-            .center-column {
-                overflow-y: visible;
-                min-height: auto;
-            }
-            
-            .right-column {
-                height: 70vh;
-                overflow-y: auto;                
-                flex-shrink: 0;
-            }
-            
-            .channels-list {                
-                overflow-y: visible;
-                border-radius: 0;
-                margin-bottom: 0;
-            }
-            
-            .channel-info {
-                border-radius: 0;
-            }            
-                       
-            .controls-container {
-                border-radius: 0;
-            }
-            
-            .status {
-                border-radius: 0;              
-            }
-            
-            .offline-placeholder {
-                padding: 15px;
-                border-radius: 0;
-            }
-    
-            .offline-icon {
-                font-size: 28px;
-                margin-bottom: 8px;
-            }
-    
-            .offline-channel-name {
-                font-size: 16px;
-                margin: 0 0 6px 0;
-            }
-    
-            .offline-status {
-                font-size: 13px;
-                margin-bottom: 4px;
-            }
-    
-            .offline-last-time {
-                font-size: 11px;
-                margin-bottom: 8px;
-            }
-    
-            .offline-btn {
-                padding: 8px 12px;
-                font-size: 13px;       
-            }
-            .refresh-btn i {
-                margin-right: 0;
-            }
-            .refresh-btn span {
-                display: none;
-            }
-            .channel-tab-wrapper .delete-btn {
-                display: flex;
-            }
-            
-            .title-container h1 {
-                font-size: 20px;
-            }
-            
-            .title-container h1 i {
-                font-size: 24px;
-                margin-right: 10px;
-            }
-            
-            .controls-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .controls {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .controls input,
-            .controls button {
-                width: 100%;
-            }
-
-            /* HACE QUE LOS CONTENEDORES PRINCIPALES SE COMPORTEN COMO SI NO EXISTIERAN */
-           .center-column, .right-column {
-                display: contents;
-            }
-    
-            /* AHORA REORDENA LOS ELEMENTOS COMO SI ESTUVIERAN TODOS EN EL MISMO CONTENEDOR */
-            .title-container { 
-                order: 1; 
-            }
-
-            .controls-container { 
-                order: 2; 
-            }
-
-            #status { 
-                order: 3; 
-            }
-
-            .video-container { 
-                order: 4; 
-            }
-
-            #channelInfo { 
-                order: 5; 
-            }
-            
-            .right-column > * { 
-                order: 6; 
-                margin-bottom: 15px;                
-            }
-
-            /* ALTURA ESPECÍFICA PARA EL CONTENEDOR DE MENSAJES */
-            #messages-container {
-                height: 70vh !important;
-                min-height: 70vh;
-                max-height: 70vh;
-                overflow-y: auto;
-                display: flex;
-                flex-direction: column;
-            }
-
-            /* ALTURA PARA EL CONTENEDOR DE MENSAJES EN SÍ */
-            #messages {
-                flex: 1;
-                overflow-y: auto;
-                height: 100%;
-            }
-
-            .channels-list { 
-                order: 7; 
-            }
-
-            /* Pantalla completa en móviles */
-            .fullscreen-container {
-                flex-direction: column;
-                height: 100vh;
-            }
-            
-            .fullscreen-video-section {
-                position: relative;
-                width: 100%;
-                height: 0;
-                padding-top: 56.25%;
-                flex-shrink: 0;
-            }
-            
-            .fullscreen-chat-section {
-                flex-grow: 1;
-                width: 100%; 
-                overflow: auto;             
-            }
-            
-            .fullscreen-container .video-player {
-                height: 100% !important;
-            }
+            h1 { font-size: 2rem; }
+            .episodes-container { grid-template-columns: 1fr; }
+            .navigation-buttons { flex-direction: column; align-items: center; }
+            .nav-button { width: 100%; max-width: 120px; }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .video-player { margin: 0 -20px; border-radius: 0; }
+            .nav-button.prev { margin-bottom: 10px; margin-right: 10px; margin-left: 10px; }
+            .nav-button.next { margin-top: 10px; margin-left: 10px; margin-right: 10px; }
+            body { padding: 10px; }
         }
     </style>
 </head>
 <body>
-    <!-- Contenedor principal normal -->
-    <div class="app-container">
-        <!-- Columna central - Video y canales -->
-        <div class="center-column">
-            <div class="title-container">
-                <h1><i class="fas fa-play-circle"></i> Stream Player</h1>
+    <div class="container">
+        <header>
+            <h1>Reproductor de Videos</h1>
+            <p class="subtitle">Reproduce tus videos e iframes favoritos</p>
+        </header>
+        
+        <!-- Reproductor de video -->
+        <div class="video-player">
+            <div class="video-controls-top">
+                <div class="video-info" id="videoDuration">Duración: --:--</div>
             </div>
             
-            <div class="controls-container">
-                <div class="controls">
-                    <input type="text" id="channelInput" placeholder="Nombre del canal" value="">
-                    <button onclick="loadStream()"><i class="fas fa-play"></i> Cargar Stream</button>
-                    <button onclick="addToList()"><i class="fas fa-plus"></i> Agregar a la lista</button>
-                    <button onclick="refreshStream()"><i class="fas fa-sync-alt"></i> Actualizar</button>
-                    <button onclick="autoRefreshToggle()" id="autoRefreshBtn"><i class="fas fa-clock"></i> Auto-Refresh: OFF</button>
-                    
-                    <div class="quality-selector">
-                        <button class="quality-btn" id="qualityBtn">
-                            <i class="fas fa-cog"></i> Calidad <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="quality-dropdown" id="qualityDropdown">
-                        </div>
-                    </div>
+            <!-- Contenedor dinámico para video/iframe -->
+            <div class="player-container">
+                <div id="playerWrapper">
+                    <!-- Video.js se inicializará aquí dinámicamente -->
                 </div>
             </div>
             
-            <div id="status" class="status">Selecciona un canal para comenzar</div>
-            
-            <div class="video-container" id="videoContainer">
-                <video id="videoPlayer" controls style="display: none;"></video>
-                
-                <!-- ✅ NUEVOS CONTROLES DE VIDEO (CALIDAD + FULLSCREEN) -->
-                <div class="video-controls-overlay" id="videoControlsOverlay">
-                    <div class="quality-selector-overlay">
-                        <button class="control-btn quality-btn-overlay" id="qualityBtnOverlay" title="Calidad">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <div class="quality-dropdown-overlay" id="qualityDropdownOverlay"></div>
-                    </div>
-                    <button class="control-btn fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla Completa">
-                        <i class="fas fa-expand"></i>
+            <div class="video-controls-bottom">
+                <div class="video-title" id="videoTitle">Selecciona un capítulo para reproducir</div>
+                <div class="navigation-buttons">
+                    <button class="nav-button prev" id="prevButton" disabled>
+                        <i class="fas fa-arrow-left"></i> Anterior
                     </button>
-                </div>
-                
-                <div id="offlinePlaceholder" class="offline-placeholder">
-                    <i class="fas fa-play-circle offline-icon"></i>
-                    <div class="offline-channel-name">Stream Player</div>
-                    <div class="offline-status">Selecciona un canal para comenzar</div>
-                    <div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>
-                    <button class="offline-btn" onclick="document.getElementById('channelInput').focus()">
-                        <i class="fas fa-search"></i> Buscar canal
+                    <button class="nav-button next" id="nextButton" disabled>
+                        Siguiente <i class="fas fa-arrow-right"></i>
                     </button>
-                </div>
-            </div>
-            
-            <div id="channelInfo" class="channel-info"></div>
-            
-            <div class="channels-list" id="channelsList">
-                <div class="channels-header">
-                    <h2><i class="fas fa-list"></i> Canales Guardados</h2>
-                    <button onclick="updateChannelsStatus()" class="refresh-btn">
-                        <i class="fas fa-sync-alt"></i> <span>Actualizar</span>
-                    </button>
-                </div>
-                <div class="tabs-container" id="tabsContainer">
                 </div>
             </div>
         </div>
         
-        <!-- Columna derecha - Chat -->
-        <div class="right-column">
-            <div class="titulo">Chat</div>
-            <div id="messages-container">
-                <div id="messages"></div>
-                <button id="scrollBottomBtn"><i class="fas fa-pause"></i>chat en pausa, ir al último mensaje</button>
-            </div>
-            <div class="footer">Kick Chat Viewer — Tizen ✅</div>
+        <!-- Lista de capítulos -->
+        <div class="episodes-container" id="episodesContainer">
+            <!-- Los capítulos se generarán dinámicamente -->
         </div>
     </div>
 
-    <!-- Contenedor para pantalla completa - MODIFICADO -->
-    <div class="fullscreen-container" id="fullscreenContainer">
-        <div class="fullscreen-video-section">
-            <!-- ✅ NUEVOS CONTROLES DE VIDEO EN FULLSCREEN -->
-            <div class="video-controls-overlay" id="fullscreenVideoControlsOverlay">
-                <div class="quality-selector-overlay">
-                    <button class="control-btn quality-btn-overlay" id="qualityBtnOverlayFullscreen" title="Calidad">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                    <div class="quality-dropdown-overlay" id="qualityDropdownOverlayFullscreen"></div>
-                </div>
-                <button class="control-btn fullscreen-exit-btn" onclick="toggleFullscreen()" title="Salir de Pantalla Completa">
-                    <i class="fas fa-compress"></i>
-                </button>
-            </div>
-        </div>
-        <div class="fullscreen-chat-section">
-            <div class="titulo">Chat</div>
-            <div class="fullscreen-messages-container">
-                <div id="fullscreenMessages" class="fullscreen-messages"></div>
-                <button id="fullscreenScrollBottomBtn" class="fullscreen-scroll-bottom-btn">
-                    <i class="fas fa-pause"></i>chat en pausa, ir al último mensaje
-                </button>
-            </div>
-            <div class="footer">Kick Chat Viewer — Tizen ✅</div>
-        </div>
-    </div>
+    <!-- 🔹 Video.js JS -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
     <script>
-        // Variables globales
-        var hls = null;
-        var autoRefreshInterval = null;
-        var isAutoRefresh = false;
-        var inputTextFromScript = false;
-        var lastSetTime = 0;
-        var viewersUpdateInterval = null;
-        var currentChannel = '';
-        var currentLevels = [];       
-        var isFullscreen = false;
+        // ==============================================
+        // EDITAR AQUÍ: AGREGAR/EDITAR VIDEOS E IFRAMES
+        // ==============================================
         
-        // Variables para controles de video
-        var controlsTimer = null;
-        var isMouseOverControls = false;
-        
-        // Variables del chat
-        var ws = null;
-        var emotes = {};
-        var rooms = {};
-        var MAX_MESSAGES = 40;
-        var pauseRemoval = false;
-        var pauseRemovalTimer = null;
-        
-        // Lista de canales guardados
-        var savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
+        // Array para almacenar los episodios
+        // Modifica este array para agregar, editar o eliminar videos e iframes
+        let EPISODES = [
+            {
+                id: 1,
+                title: "Episodio 1 - Introducción",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                type: "video"
+            },
+            {
+                id: 2,
+                title: "Episodio 2 - Desarrollo",
+                url: "https://filemoon.to/e/3m9wvqolfszm",
+                type: "iframe"
+            },
+            {
+                id: 3,
+                title: "Episodio 3 - Clímax",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                type: "video"
+            },
+            {
+                id: 4,
+                title: "Episodio 4 - Resolución",
+                url: "https://filemoon.to/e/2qty4vfkmzrk",
+                type: "iframe"
+            },
+            {
+                id: 5,
+                title: "Episodio 5 - Nuevos Horizontes",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                type: "video"
+            },
+            {
+                id: 6,
+                title: "Episodio 6 - Desafíos",
+                url: "https://filemoon.to/e/g5fh4p53nhi8",
+                type: "iframe"
+            },
+            {
+                id: 7,
+                title: "Episodio 7 - Revelaciones",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                type: "video"
+            },
+            {
+                id: 8,
+                title: "Episodio 8 - Confrontación",
+                url: "https://filemoon.to/e/ve7isonndj73",
+                type: "iframe"
+            },
+            {
+                id: 9,
+                title: "Episodio 9 - Transformación",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+                type: "video"
+            },
+            {
+                id: 10,
+                title: "Episodio 10 - Conclusión",
+                url: "https://filemoon.to/e/6aizfzm9c83v",
+                type: "iframe"
+            }
+        ];
 
-        // ========== PANTALLA COMPLETA MEJORADA ==========
-        function toggleFullscreen() {
-            if (isFullscreen) {
-                exitFullscreen();
-            } else {
-                enterFullscreen();
-            }
-        }
+        // ==============================================
+        // NO EDITAR A PARTIR DE AQUÍ
+        // ==============================================
 
-        function enterFullscreen() {
-            var videoPlayer = document.getElementById('videoPlayer');
-            var videoContainer = document.getElementById('videoContainer');
-            var fullscreenContainer = document.getElementById('fullscreenContainer');
-            var fullscreenVideoSection = document.querySelector('.fullscreen-video-section');
-            
-            // Verificar que hay un stream cargado
-            if (!videoPlayer.src || videoPlayer.src === '') {
-                console.log('No hay stream para mostrar en pantalla completa');
-                updateStatus('<i class="fas fa-exclamation-circle"></i> No hay stream cargado', 'error');
-                return;
-            }
-            
-            console.log('🎬 Entrando en pantalla completa...');
-            
-            // 1. Guardar estado actual
-            var wasPlaying = !videoPlayer.paused;
-            var currentTime = videoPlayer.currentTime;
-            var currentVolume = videoPlayer.volume;
-            var wasMuted = videoPlayer.muted;
-            
-            // 2. MOVER el video al contenedor de fullscreen
-            fullscreenVideoSection.appendChild(videoPlayer);
-            
-            // 3. Aplicar clases de estilo fullscreen
-            videoPlayer.classList.add('fullscreen-mode');
-            
-            // 4. Mostrar contenedor fullscreen
-            fullscreenContainer.classList.add('active');
-            document.querySelector('.app-container').style.display = 'none';
-            
-            // 5. Restaurar propiedades del video
-            videoPlayer.currentTime = currentTime;
-            videoPlayer.volume = currentVolume;
-            videoPlayer.muted = wasMuted;
-            videoPlayer.controls = true;
+        let currentEpisodeIndex = null;
+        let player = null;
 
-            // 6. FORZAR REPRODUCCIÓN si estaba reproduciéndose
-            if (wasPlaying) {
-                videoPlayer.play().catch(function(e) {
-                    console.log('⚠️ No se pudo reanudar:', e);
-                    videoPlayer.controls = true;
-                });
-            }
-            
-            // 7. Sincronizar chat
-            var fullscreenMessages = document.getElementById("fullscreenMessages");
-            var normalMessages = document.getElementById("messages");
-            fullscreenMessages.innerHTML = normalMessages.innerHTML;
-            pauseRemoval = false;
-            document.getElementById("fullscreenScrollBottomBtn").style.display = "none";
-            
-            // 8. Configurar eventos del chat fullscreen
-            setupFullscreenChatEvents();
-            
-            // 9. Scroll al final del chat
-            setTimeout(function() {
-                fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
-            }, 100);
-            
-            isFullscreen = true;
-            
-            // 10. Mostrar controles en fullscreen
-            setTimeout(function() {
-                showVideoControls();
-            }, 100);
-            
-            // 11. Activar fullscreen del navegador
-            var elem = fullscreenContainer;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen();
-            } else if (elem.mozRequestFullScreen) {
-                elem.mozRequestFullScreen();
-            }
-            
-            // 12. Configurar event listeners para fullscreen change
-            document.addEventListener('fullscreenchange', handleFullscreenChange);
-            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-            
-            console.log('✅ Video movido a pantalla completa');
-        }
-
-        function exitFullscreen() {
-            var videoPlayer = document.getElementById('videoPlayer');
-            var videoContainer = document.getElementById('videoContainer');
-            var fullscreenContainer = document.getElementById('fullscreenContainer');
-            
-            console.log('🎬 Saliendo de pantalla completa...');
-            
-            // 1. Guardar estado actual del video en fullscreen
-            var wasPlaying = !videoPlayer.paused;
-            var currentTime = videoPlayer.currentTime;
-            var currentVolume = videoPlayer.volume;
-            var wasMuted = videoPlayer.muted;
-            
-            // 2. MOVER el video de vuelta al contenedor original
-            videoContainer.appendChild(videoPlayer);
-            
-            // 3. Remover clases de estilo fullscreen
-            videoPlayer.classList.remove('fullscreen-mode');
-            
-            // 4. Ocultar contenedor fullscreen
-            fullscreenContainer.classList.remove('active');
-            document.querySelector('.app-container').style.display = 'flex';
-            
-            // 5. Restaurar propiedades del video
-            videoPlayer.currentTime = currentTime;
-            videoPlayer.volume = currentVolume;
-            videoPlayer.muted = wasMuted;
-            videoPlayer.controls = true;
-
-            // 6. FORZAR REPRODUCCIÓN si estaba reproduciéndose
-            if (wasPlaying) {
-                videoPlayer.play().catch(function(e) {
-                    console.log('⚠️ No se pudo reanudar:', e);
-                    videoPlayer.controls = true;
-                });
-            }
-            
-            // 7. Aplicar estilos para modo normal
-            videoPlayer.style.width = '100%';
-            videoPlayer.style.height = '100%';
-            videoPlayer.style.position = 'absolute';
-            videoPlayer.style.top = '0';
-            videoPlayer.style.left = '0';
-            
-            isFullscreen = false;
-            
-            // 8. Mostrar controles en modo normal
-            setTimeout(function() {
-                showVideoControls();
-            }, 100);
-            
-            // 9. Salir del fullscreen del navegador
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            }
-            
-            // 10. Remover event listeners
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-            
-            console.log('✅ Video devuelto a contenedor normal');
-        }
-
-        function handleFullscreenChange() {
-            var fullscreenElement = document.fullscreenElement || 
-                                   document.webkitFullscreenElement ||
-                                   document.mozFullScreenElement ||
-                                   document.msFullscreenElement;
-            
-            // Si el usuario sale de fullscreen usando la tecla ESC
-            if (!fullscreenElement && isFullscreen) {
-                exitFullscreen();
-            }
-        }
-
-        // ========== CONTROLES DE VIDEO ==========
-        function showVideoControls() {
-            var overlay = isFullscreen ? 
-                document.getElementById('fullscreenVideoControlsOverlay') : 
-                document.getElementById('videoControlsOverlay');
-            
-            if (overlay) {
-                overlay.classList.add('visible');
-                resetControlsTimer();
-            }
-        }
-
-        function hideVideoControls() {
-            var overlay = isFullscreen ? 
-                document.getElementById('fullscreenVideoControlsOverlay') : 
-                document.getElementById('videoControlsOverlay');
-            
-            if (overlay && !isMouseOverControls) {
-                overlay.classList.remove('visible');
-            }
-        }
-
-        function resetControlsTimer() {
-            clearTimeout(controlsTimer);
-            controlsTimer = setTimeout(hideVideoControls, 3000);
-        }
-
-        function setupVideoControlsEvents() {
-            var videoContainer = document.getElementById('videoContainer');
-            var fullscreenVideoSection = document.querySelector('.fullscreen-video-section');
-            
-            // Eventos para contenedor normal
-            if (videoContainer) {
-                videoContainer.addEventListener('mousemove', function() {
-                    if (!isFullscreen) showVideoControls();
-                });
-                
-                videoContainer.addEventListener('mouseleave', function() {
-                    if (!isFullscreen) hideVideoControls();
-                });
-            }
-            
-            // Eventos para contenedor fullscreen
-            if (fullscreenVideoSection) {
-                fullscreenVideoSection.addEventListener('mousemove', function() {
-                    if (isFullscreen) showVideoControls();
-                });
-                
-                fullscreenVideoSection.addEventListener('mouseleave', function() {
-                    if (isFullscreen) hideVideoControls();
-                });
-            }
-            
-            // Mantener controles visibles cuando el mouse está sobre ellos
-            var controlOverlays = document.querySelectorAll('.video-controls-overlay');
-            controlOverlays.forEach(function(overlay) {
-                overlay.addEventListener('mouseenter', function() {
-                    isMouseOverControls = true;
-                    clearTimeout(controlsTimer);
-                });
-                
-                overlay.addEventListener('mouseleave', function() {
-                    isMouseOverControls = false;
-                    resetControlsTimer();
-                });
-            });
-        }
-
-        // ========== ACTUALIZAR SELECTOR DE CALIDAD OVERLAY ==========
-        function updateOverlayQualityDropdown() {
-            if (!hls || !hls.levels || hls.levels.length === 0) {
-                console.log('No hay niveles de calidad disponibles para overlay');
-                return;
-            }
-            
-            // Actualizar dropdown normal
-            var qualityDropdownOverlay = document.getElementById('qualityDropdownOverlay');
-            if (qualityDropdownOverlay) {
-                updateSingleQualityDropdown(qualityDropdownOverlay);
-            }
-            
-            // Actualizar dropdown fullscreen
-            var qualityDropdownOverlayFullscreen = document.getElementById('qualityDropdownOverlayFullscreen');
-            if (qualityDropdownOverlayFullscreen) {
-                updateSingleQualityDropdown(qualityDropdownOverlayFullscreen);
-            }
-        }
-
-        function updateSingleQualityDropdown(dropdownElement) {
-            if (!hls || !hls.levels) return;
-            
-            dropdownElement.innerHTML = '';
-            currentLevels = hls.levels;
-            
-            var autoOption = document.createElement('div');
-            autoOption.className = 'quality-option';
-            autoOption.textContent = 'Auto';
-            autoOption.setAttribute('data-level', '-1');
-            if (hls.currentLevel === -1) autoOption.classList.add('active');
-            autoOption.onclick = function() { 
-                changeQuality(-1);
-                hideAllQualityDropdowns();
-            };
-            dropdownElement.appendChild(autoOption);
-            
-            for (var i = 0; i < currentLevels.length; i++) {
-                var level = currentLevels[i];
-                var label = getQualityLabel(level);
-                var option = document.createElement('div');
-                option.className = 'quality-option';
-                option.textContent = label;
-                option.setAttribute('data-level', i.toString());
-                if (hls.currentLevel === i) option.classList.add('active');
-                option.onclick = (function(levelIndex) {
-                    return function() { 
-                        changeQuality(levelIndex);
-                        hideAllQualityDropdowns();
-                    };
-                })(i);
-                dropdownElement.appendChild(option);
-            }
-        }
-
-        function hideAllQualityDropdowns() {
-            var dropdowns = document.querySelectorAll('.quality-dropdown-overlay');
-            dropdowns.forEach(function(dropdown) {
-                dropdown.classList.remove('show');
-            });
-        }
-
-        // ========== TOGGLE DROPDOWN DE CALIDAD OVERLAY ==========
-        function toggleOverlayQualityDropdown(dropdownId) {
-            var dropdown = document.getElementById(dropdownId);
-            if (dropdown) {
-                dropdown.classList.toggle('show');
-                
-                // Cerrar otros dropdowns
-                var allDropdowns = document.querySelectorAll('.quality-dropdown-overlay');
-                allDropdowns.forEach(function(otherDropdown) {
-                    if (otherDropdown !== dropdown) {
-                        otherDropdown.classList.remove('show');
-                    }
-                });
-            }
-        }
-
-        // ========== CONFIGURAR EVENTOS DE BOTONES OVERLAY ==========
-        function setupOverlayQualityButtons() {
-            // Botón de calidad normal
-            var qualityBtnOverlay = document.getElementById('qualityBtnOverlay');
-            if (qualityBtnOverlay) {
-                qualityBtnOverlay.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    toggleOverlayQualityDropdown('qualityDropdownOverlay');
-                    resetControlsTimer();
-                });
-            }
-            
-            // Botón de calidad fullscreen
-            var qualityBtnOverlayFullscreen = document.getElementById('qualityBtnOverlayFullscreen');
-            if (qualityBtnOverlayFullscreen) {
-                qualityBtnOverlayFullscreen.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    toggleOverlayQualityDropdown('qualityDropdownOverlayFullscreen');
-                    resetControlsTimer();
-                });
-            }
-            
-            // Cerrar dropdowns al hacer clic fuera
-            document.addEventListener('click', function(event) {
-                var qualityDropdownOverlay = document.getElementById('qualityDropdownOverlay');
-                var qualityBtnOverlay = document.getElementById('qualityBtnOverlay');
-                var qualityDropdownOverlayFullscreen = document.getElementById('qualityDropdownOverlayFullscreen');
-                var qualityBtnOverlayFullscreen = document.getElementById('qualityBtnOverlayFullscreen');
-                
-                if (qualityDropdownOverlay && qualityBtnOverlay && 
-                    !qualityBtnOverlay.contains(event.target) && 
-                    !qualityDropdownOverlay.contains(event.target)) {
-                    qualityDropdownOverlay.classList.remove('show');
-                }
-                
-                if (qualityDropdownOverlayFullscreen && qualityBtnOverlayFullscreen && 
-                    !qualityBtnOverlayFullscreen.contains(event.target) && 
-                    !qualityDropdownOverlayFullscreen.contains(event.target)) {
-                    qualityDropdownOverlayFullscreen.classList.remove('show');
-                }
-            });
-        }
-
-        // ========== MODIFICAR LA FUNCIÓN changeQuality ==========
-        function changeQuality(levelIndex) {
-            if (!hls) return;
-            hls.currentLevel = levelIndex;
-            
-            // Actualizar todos los dropdowns
-            var allDropdowns = document.querySelectorAll('.quality-dropdown, .quality-dropdown-overlay');
-            for (var i = 0; i < allDropdowns.length; i++) {
-                var options = allDropdowns[i].querySelectorAll('.quality-option');
-                for (var j = 0; j < options.length; j++) {
-                    options[j].classList.remove('active');
-                    if (parseInt(options[j].getAttribute('data-level')) === levelIndex) {
-                        options[j].classList.add('active');
-                    }
-                }
-            }
-            
-            console.log('Calidad cambiada a nivel: ' + levelIndex);
-        }
-
-        // ========== MODIFICAR LA FUNCIÓN updateQualityDropdown ==========
-        function updateQualityDropdown() {
-            if (!hls || !hls.levels || hls.levels.length === 0) {
-                console.log('No hay niveles de calidad disponibles');
-                return;
-            }
-            
-            var qualityDropdown = document.getElementById('qualityDropdown');
-            currentLevels = hls.levels;
-            qualityDropdown.innerHTML = '';
-            
-            var autoOption = document.createElement('div');
-            autoOption.className = 'quality-option';
-            autoOption.textContent = 'Auto';
-            autoOption.setAttribute('data-level', '-1');
-            if (hls.currentLevel === -1) autoOption.classList.add('active');
-            autoOption.onclick = function() { changeQuality(-1); };
-            qualityDropdown.appendChild(autoOption);
-            
-            for (var i = 0; i < currentLevels.length; i++) {
-                var level = currentLevels[i];
-                var label = getQualityLabel(level);
-                var option = document.createElement('div');
-                option.className = 'quality-option';
-                option.textContent = label;
-                option.setAttribute('data-level', i.toString());
-                if (hls.currentLevel === i) option.classList.add('active');
-                option.onclick = (function(levelIndex) {
-                    return function() { changeQuality(levelIndex); };
-                })(i);
-                qualityDropdown.appendChild(option);
-            }
-            
-            // Actualizar también los dropdowns overlay
-            updateOverlayQualityDropdown();
-        }
-
-        function getQualityLabel(level) {
-            if (level.height) return level.height + 'p';
-            else if (level.name) return level.name;
-            else if (level.bitrate) return Math.round(level.bitrate / 1000) + ' kbps';
-            else return 'Nivel ' + level.id;
-        }
-
-        function toggleQualityDropdown() {
-            var dropdown = document.getElementById('qualityDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        function setupFullscreenChatEvents() {
-            var fullscreenMessages = document.getElementById('fullscreenMessages');
-            var fullscreenScrollBtn = document.getElementById('fullscreenScrollBottomBtn');
-            
-            fullscreenMessages.addEventListener("scroll", function() {
-                var atBottom = fullscreenMessages.scrollHeight - fullscreenMessages.scrollTop - fullscreenMessages.clientHeight < 50;
-                if (!atBottom) {
-                    pauseRemoval = true;
-                    fullscreenScrollBtn.style.display = "flex";
-                    clearTimeout(pauseRemovalTimer);
-                    pauseRemovalTimer = setTimeout(function() { 
-                        pauseRemoval = false; 
-                    fullscreenScrollBtn.style.display = "none";
-            }, 30000);
-        } else {
-            pauseRemoval = false;
-                    fullscreenScrollBtn.style.display = "none";
-                }
-            });
-            
-            fullscreenScrollBtn.onclick = function() {
-                fullscreenMessages.scrollTop = fullscreenMessages.scrollHeight;
-                fullscreenScrollBtn.style.display = "none";
-        pauseRemoval = false;
-            };
-        }
-
-        // ========== CHAT MEJORADO ==========
-        function joinChannel(channelName) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.close();
-            }
-            
-            document.getElementById("messages").innerHTML = '';
-            document.getElementById("fullscreenMessages").innerHTML = '';
-            
-            ws = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.6.0");
-            
-            ws.onopen = function() { 
-                console.log("✅ WebSocket conectado para el chat"); 
-                getChatroomId(channelName, function(id) {
-                    rooms[id] = true;
-                    if (ws.readyState === 1) {
-                        ws.send(JSON.stringify({
-                            event: "pusher:subscribe",
-                            data: { auth: "", channel: "chatrooms." + id + ".v2" }
-                        }));
-                        load7TV(channelName);
-                        loadKickEmotes(channelName);
-                        console.log("📡 Conectado al chat de " + channelName);
-                    }
-                });
-            };
-            
-            ws.onerror = function() { console.log("❌ Error WebSocket"); };
-            ws.onclose = function(e) { console.log("⚠️ WS cerrado: " + e.code); };
-            
-            ws.onmessage = function(e) {
+        // Función para destruir el reproductor de forma segura
+        function safeDisposePlayer(playerId) {
+            if (player) {
                 try {
-                    var data = JSON.parse(e.data);
-                    if (!data.data) return;
-                    var messageData = JSON.parse(data.data);
-                    if (messageData.sender && messageData.content) {
-                        addMsgToBothContainers(messageData.sender.username, messageData.content);
-                    }
-                } catch(e) {
-                    // Error silencioso
-                }
-            };
-        }
-
-        function addMsgToBothContainers(user, text) {
-            addMsgToContainer(user, text, "messages");
-            addMsgToContainer(user, text, "fullscreenMessages");
-        }
-
-        function addMsgToContainer(user, text, containerId) {
-            var messagesBox = document.getElementById(containerId);
-            var scrollBtn = containerId === "messages" ? 
-                document.getElementById("scrollBottomBtn") : 
-                document.getElementById("fullscreenScrollBottomBtn");
-            
-            var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
-            
-            var msgElement = document.createElement("div");
-            msgElement.className = "msg";
-            var color = nameColor(user);
-            var parsedText = parseEmotes(text);
-
-            msgElement.innerHTML = "<span class='username' style='color:" + color + "'>" + user + "</span><span class='colon'>:</span> <span>" + parsedText + "</span>";
-            messagesBox.appendChild(msgElement);
-
-            if (!pauseRemoval) {
-                while (messagesBox.children.length > MAX_MESSAGES) {
-                    messagesBox.removeChild(messagesBox.firstChild);
+                    player.dispose();
+                    player = null;
+                } catch (e) {
+                    console.warn("Error al destruir el reproductor:", e);
                 }
             }
-
-            if (atBottom || !pauseRemoval) {
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-                if (scrollBtn) scrollBtn.style.display = "none";
+            
+            // También intentamos eliminar por ID por si acaso
+            const existingPlayer = videojs.getPlayer(playerId);
+            if (existingPlayer) {
+                try {
+                    existingPlayer.dispose();
+                } catch (e) {
+                    console.warn("Error al destruir reproductor por ID:", e);
+                }
             }
         }
 
-        // ===== 7TV GLOBAL =====
-        var xhrGlobal = new XMLHttpRequest();
-        xhrGlobal.open("GET", "https://7tv.io/v3/emote-sets/global");
-        xhrGlobal.onload = function() {
-            if (xhrGlobal.status === 200) {
-                var data = JSON.parse(xhrGlobal.responseText);
-                for (var i = 0; i < data.emotes.length; i++) {
-                    var emote = data.emotes[i];
-                    emotes[emote.name] = "https:" + emote.data.host.url + "/3x";
-                }
-                console.log("🌍 7TV Global OK");
-            }
-        };
-        xhrGlobal.send();
-
-        // ===== 7TV CANAL =====
-        function load7TV(name) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://7tv.io/v3/users/kick/" + name);
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        if (data.emote_set && data.emote_set.emotes) {
-                            for (var i = 0; i < data.emote_set.emotes.length; i++) {
-                                var emote = data.emote_set.emotes[i];
-                                emotes[emote.name] = "https:" + emote.data.host.url + "/3x." + emote.data.host.files[0].format;
-                            }
-                            console.log("🎭 7TV canal OK");
-                        }
-                    } catch (e) {
-                        console.log("⚠️ Error 7TV canal");
-                    }
-                }
-            };
-            xhr.send();
-        }
-
-        // ===== EMOTES KICK =====
-        function loadKickEmotes(name) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://kick.com/emotes/" + name);
-            xhr.onload = function() {
-                console.log("🔍 Emotes Kick status " + xhr.status);
-                if (xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        var count = 0;
-                        for (var i = 0; i < data.length; i++) {
-                            var section = data[i];
-                            if (section.emotes) {
-                                for (var j = 0; j < section.emotes.length; j++) {
-                                    var emote = section.emotes[j];
-                                    emotes[emote.name] = "https://files.kick.com/emotes/" + emote.id + "/fullsize";
-                                    count++;
-                                }
-                            }
-                        }
-                        console.log(count ? "✅ Kick emotes " + count : "⚠️ No emotes Kick");
-                    } catch (e) {
-                        console.log("❌ Error Kick emotes");
-                    }
-                }
-            };
-            xhr.send();
-        }
-
-        // ===== GET CHATROOM ID =====
-        function getChatroomId(name, cb) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://kick.com/api/v2/channels/" + name);
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        var id = data.chatroom && data.chatroom.id;
-                        if (id) {
-                            cb(id);
-                        } else {
-                            console.log("⚠️ Sin chatroom");
-                        }
-                    } catch (e) {
-                        console.log("❌ Error API canal");
-                    }
-                }
-            };
-            xhr.send();
-        }
-
-        // ===== PARSE EMOTES =====
-        function parseEmotes(text) {
-            return text.replace(/\[emote:\d+:(.+?)\]/g, function(match, name) {
-                return emotes[name] ? "<img class='chat-emote' src='" + emotes[name] + "'>" : name;
-            });
-        }
-
-        // ===== NAME COLOR - PALETA VIBRANTE Y PASTEL =====
-        function nameColor(n) {
-            var hash = 0;
-            for (var i = 0; i < n.length; i++) {
-                hash = n.charCodeAt(i) + ((hash << 5) - hash);
-            }
+        // Inicializar Video.js vacío
+        function initEmptyVideoPlayer() {
+            const container = document.getElementById('playerWrapper');
             
-            // Paleta mixta de colores vibrantes y pasteles
-            var vibrantColors = [
-                // Colores vibrantes originales
-                "hsl(0, 100%, 55%)",     // Rojo puro intenso
-                "hsl(0, 100%, 65%)",     // Rojo vibrante
-                "hsl(0, 95%, 50%)",      // Rojo profundo
-                "hsl(30, 100%, 65%)",    // Naranja fuerte
-                "hsl(60, 100%, 65%)",    // Amarillo brillante
-                "hsl(120, 80%, 65%)",    // Verde vivo
-                "hsl(142, 84%, 42%)",    // Verde Kick oficial
-                "hsl(180, 80%, 65%)",    // Cyan brillante
-                "hsl(240, 80%, 70%)",    // Azul eléctrico
-                "hsl(300, 80%, 70%)",    // Rosa neón
-                "hsl(330, 100%, 70%)",   // Rosa fucsia
-                "hsl(45, 100%, 65%)",    // Dorado
-                "hsl(150, 80%, 60%)",    // Verde esmeralda
-                
-                // Nuevos colores pastele suaves
-                "hsl(350, 85%, 75%)",    // Rosa pastel
-                "hsl(30, 85%, 75%)",     // Melocotón pastel
-                "hsl(120, 70%, 75%)",    // Verde pastel    
-                "hsl(240, 70%, 80%)",    // Azul pastel
-                "hsl(270, 70%, 80%)",    // Lila pastel
-                 
-                // Colores pastele más intensos
-                
-                "hsl(80, 80%, 75%)",     // Lima pastel
-                "hsl(160, 75%, 75%)",    // Verde menta
-                "hsl(220, 100%, 60%)",    // Azul intenso   
-                "hsl(50, 90%, 80%)",     // Amarillo crema    
-            ];
+            // Limpiar contenedor completamente
+            container.innerHTML = '';
             
-            return vibrantColors[Math.abs(hash) % vibrantColors.length];
-        }
-
-        // Configurar eventos del chat normal
-        function setupNormalChatEvents() {
-            var messagesBox = document.getElementById("messages");
-            var scrollBtn = document.getElementById("scrollBottomBtn");
+            // Crear elemento video desde cero
+            const video = document.createElement('video');
+            video.id = 'videoPlayer';
+            video.className = 'video-js vjs-default-skin';
+            video.controls = true;
+            video.preload = 'auto';
+            video.setAttribute('playsinline', '');
+            container.appendChild(video);
             
-            messagesBox.addEventListener("scroll", function() {
-                var atBottom = messagesBox.scrollHeight - messagesBox.scrollTop - messagesBox.clientHeight < 50;
-                if (!atBottom) {
-                    pauseRemoval = true;
-                    scrollBtn.style.display = "flex";
-                    clearTimeout(pauseRemovalTimer);
-                    pauseRemovalTimer = setTimeout(function() { 
-                        pauseRemoval = false; 
-                    }, 30000);
-                } else {
-                    scrollBtn.style.display = "none";
-                }
-            });
-            
-            scrollBtn.onclick = function() {
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-                scrollBtn.style.display = "none";
-            };
-        }
-
-        // ========== CONTROL DE COMPORTAMIENTO DEL INPUT ==========
-        function setupChannelInputBehavior() {
-            var channelInput = document.getElementById('channelInput');
-            
-            channelInput.addEventListener('focus', function() {
-                // Solo borrar si el texto fue puesto por script hace más de 500ms
-                if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
-                    this.value = '';
-                    inputTextFromScript = false;
-                } else {
-                    // Poner cursor al final para texto manual
-                    this.setSelectionRange(this.value.length, this.value.length);
-                }
-            });
-            
-            channelInput.addEventListener('click', function() {
-                if (inputTextFromScript && (Date.now() - lastSetTime > 500)) {
-                    this.value = '';
-                    inputTextFromScript = false;
-                }
-            });
-            
-            channelInput.addEventListener('input', function() {
-                inputTextFromScript = false;
-            });
-        }
-
-        function setChannelInput(value, fromScript) {
-            var channelInput = document.getElementById('channelInput');
-            channelInput.value = value;
-            inputTextFromScript = fromScript || false;
-            lastSetTime = Date.now(); // Registrar cuándo se puso el texto
-        }
-        
-        // ========== FUNCIONES EXISTENTES DEL STREAM ==========
-        function scrollToVideoContainer() {
-            const videoContainer = document.querySelector('.status');
-            if (videoContainer) {
-                videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-
-        function getVerifiedBadge(verified) {
-            if (verified) {
-                return '<img src="https://raw.githubusercontent.com/j4m1r98/Utilidades/refs/heads/main/verified-badge.svg" class="verified-badge" alt="Verified">';
-            }
-            return '';
-        }
-
-        function makeRequest(url) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            resolve(data);
-                        } catch (e) {
-                            reject(new Error('Error parsing JSON'));
-                        }
-                    } else {
-                        reject(new Error('HTTP error: ' + xhr.status));
-                    }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network error'));
-                };
-                xhr.send();
-            });
-        }
-
-        function getLastLiveText(username) {
-            return makeRequest('https://kick.com/api/v1/channels/' + username)
-                .then(function(data) {
-                    if (Array.isArray(data.previous_livestreams) && data.previous_livestreams.length > 0) {
-                        var last = data.previous_livestreams[0];
-                        var startMs = Date.parse((last.created_at || '') + "Z");
-                        var durMs = Number(last.duration);
-                        if (!isNaN(startMs) && !isNaN(durMs) && durMs > 0) {
-                            var endMs = startMs + durMs;
-                            var agoMs = Date.now() - endMs;
-                            if (agoMs > 0) {
-                                var totalSeconds = Math.floor(agoMs / 1000);
-                                if (totalSeconds < 60) return "menos de un min";
-                                var totalMinutes = Math.floor(totalSeconds / 60);
-                                var totalHours = Math.floor(totalMinutes / 60);
-                                var days = Math.floor(totalHours / 24);
-                                var hours = totalHours % 24;
-                                var minutes = totalMinutes % 60;
-                                var parts = [];
-                                if (days > 0) parts.push(days + ' día' + (days !== 1 ? 's' : ''));
-                                if (hours > 0) parts.push(hours + ' h');
-                                if (minutes > 0 && days === 0) parts.push(minutes + ' min');
-                                if (parts.length === 0) return "menos de un min";
-                                return 'hace ' + parts.join(' ');
-                            }
-                        }
-                    }
-                    return "Nunca ha estado en vivo";
-                })
-                .catch(function(e) {
-                    console.warn('Error al obtener último live de ' + username + ':', e);
-                    return "No disponible";
+            // Inicializar Video.js
+            try {
+                player = videojs('videoPlayer', {
+                    controls: true,
+                    autoplay: false,
+                    preload: 'auto',
+                    playsinline: true,
+                    fluid: true
                 });
+                
+                player.ready(function() {
+                    createSkipButtons(player);
+                });
+            } catch (e) {
+                console.error('Error iniciando Video.js:', e);
+            }
         }
 
-        function getStreamFromKickAPI(channel) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://kick.com/api/v2/channels/' + encodeURIComponent(channel), true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            var streamData = {
-                                playback_url: data.playback_url,
-                                channel_info: {
-                                    name: data.user ? data.user.username : channel,
-                                    title: data.livestream ? data.livestream.session_title : '',
-                                    profile_pic: data.user ? data.user.profile_pic : '',
-                                    is_live: data.livestream ? data.livestream.is_live : false,
-                                    viewer_count: data.livestream ? data.livestream.viewer_count : 0,
-                                    verified: data.verified || false
-                                }
-                            };
-                            resolve(streamData);
-                        } catch (e) {
-                            reject(new Error('Error parsing JSON from Kick API'));
-                        }
+        // Mostrar estado vacío del reproductor
+        function showEmptyPlayer() {
+            const videoDuration = document.getElementById('videoDuration');
+            const videoTitle = document.getElementById('videoTitle');
+            
+            safeDisposePlayer("videoPlayer");
+            initEmptyVideoPlayer();
+            
+            videoDuration.textContent = 'Duración: --:--';
+            videoTitle.textContent = 'Selecciona un capítulo para reproducir';
+            
+            // Deshabilitar navegación
+            document.getElementById('prevButton').disabled = true;
+            document.getElementById('nextButton').disabled = true;
+        }
+
+        // Inicialización
+        function initApp() {
+            generateEpisodes();
+            
+            /* === Detectar si es nueva pestaña (no recarga) === */
+            if (!sessionStorage.getItem("paginaActiva")) {
+                // Es una nueva pestaña, no cargamos el último episodio
+                sessionStorage.setItem("paginaActiva", "1");
+                
+                // Mostrar reproductor vacío
+                showEmptyPlayer();
+            } else {
+                // No es nueva pestaña, verificamos si hay episodio guardado
+                const ultimoGuardado = localStorage.getItem("ultimoEpisodio");
+                
+                if (ultimoGuardado !== null) {
+                    const indiceACargar = Number(ultimoGuardado);
+                    
+                    // Verificar que el índice sea válido
+                    if (indiceACargar >= 0 && indiceACargar < EPISODES.length) {
+                        playEpisode(indiceACargar);
                     } else {
-                        reject(new Error('Error del Kick API: ' + xhr.status));
+                        // Índice inválido, mostrar reproductor vacío
+                        showEmptyPlayer();
                     }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Network error when connecting to Kick API'));
-                };
-                xhr.send();
+                } else {
+                    // No hay episodio guardado, mostrar reproductor vacío
+                    showEmptyPlayer();
+                }
+            }
+        }
+
+        // Generar la lista de episodios
+        function generateEpisodes() {
+            const container = document.getElementById('episodesContainer');
+            container.innerHTML = '';
+            
+            EPISODES.forEach((episode, index) => {
+                const episodeCard = document.createElement('div');
+                episodeCard.className = 'episode-card';
+                episodeCard.dataset.id = episode.id;
+                
+                const typeClass = episode.type === 'video' ? 'video-type' : 'iframe-type';
+                const typeText = episode.type === 'video' ? 'Video' : 'Iframe';
+                
+                episodeCard.innerHTML = `
+                    <div class="episode-number">Capítulo ${episode.id}</div>
+                    <div class="episode-title">${episode.title}</div>
+                    <div class="episode-duration">
+                        <svg class="play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5,3 19,12 5,21"></polygon>
+                        </svg>
+                        Reproducir
+                    </div>
+                    <div class="episode-type ${typeClass}">${typeText}</div>
+                `;
+                
+                episodeCard.addEventListener('click', function() {
+                    playEpisode(index);
+                });
+                
+                container.appendChild(episodeCard);
             });
         }
 
-        function loadStream() {
-            var channelName = document.getElementById('channelInput').value.trim();
-            if (!channelName) {
-                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
-                return;
-            }
+        // Reproducir un episodio
+        function playEpisode(index) {
+            if (index < 0 || index >= EPISODES.length) return;
             
-            clearInterval(viewersUpdateInterval);
+            const episode = EPISODES[index];
+            currentEpisodeIndex = index;
             
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            video.pause();
-            video.src = '';
-            video.load();
+            // Guardar el último episodio visto en localStorage
+            localStorage.setItem("ultimoEpisodio", index.toString());
             
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
+            const container = document.getElementById('playerWrapper');
+            const videoTitle = document.getElementById('videoTitle');
+            const videoDuration = document.getElementById('videoDuration');
             
-            currentChannel = channelName;
-            scrollToVideoContainer();
+            // Actualizar título
+            videoTitle.textContent = episode.title;
+            
+            // Destruir player anterior y limpiar contenedor
+            safeDisposePlayer("videoPlayer");
+            container.innerHTML = "";
 
-            updateStatus('<i class="fas fa-search"></i> Buscando stream...', 'loading');
-            
-            joinChannel(channelName);
-            
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData) throw new Error('No se pudo obtener información del canal');
-                    
-                    if (!streamData.channel_info.is_live) {
-                        return showOfflinePlaceholder(streamData.channel_info)
-                            .then(function() {
-                                updateStatus('<i class="fas fa-user-slash"></i> El canal está offline', 'error');
-                            });
+            // Crear el elemento de video o iframe
+            if (episode.type === "iframe") {
+                videoDuration.textContent = 'Reproduciendo...';
+                
+                const iframe = document.createElement("iframe");
+                iframe.src = episode.url;
+                iframe.allowFullscreen = true;
+                iframe.frameBorder = 0;
+                // Agregar atributo para permitir autoplay
+                iframe.setAttribute("allow", "autoplay; encrypted-media");
+                Object.assign(iframe.style, { 
+                    position:"absolute", 
+                    top:0, 
+                    left:0, 
+                    width:"100%", 
+                    height:"100%" 
+                });
+                container.appendChild(iframe);
+
+            } else if (episode.type === "video") {
+                videoDuration.textContent = 'Cargando...';
+                
+                const video = document.createElement("video");
+                video.className = "video-js vjs-default-skin";
+                video.id = "videoPlayer";
+                video.controls = true;
+                video.preload = "auto";
+                video.setAttribute("playsinline", "");
+                
+                const source = document.createElement("source");
+                source.src = episode.url;
+                source.type = "video/mp4";
+                video.appendChild(source);
+                
+                Object.assign(video.style, { 
+                    position:"absolute", 
+                    top:0, 
+                    left:0, 
+                    width:"100%", 
+                    height:"100%" 
+                });
+                container.appendChild(video);
+
+                // Esperamos un tick del navegador para que el DOM se estabilice
+                requestAnimationFrame(() => {
+                    // Si videojs no está disponible, mostramos mensaje claro
+                    if (typeof videojs !== 'function') {
+                        container.innerHTML = `<div style="color:white;padding:18px;text-align:center;">Video.js no está disponible. Revisa la consola o comprueba la conexión CDN.</div>`;
+                        return;
                     }
-                    
-                    if (!streamData.playback_url) throw new Error('No se pudo obtener el stream del Kick API');
-                    
-                    console.log('URL del stream obtenida:', streamData.playback_url);
-                    updateStatus('<i class="fas fa-check"></i> Stream encontrado, cargando video...', 'success');
-             
-                    updateStatus('<i class="fas fa-cloud"></i> Obteniendo stream via proxy...', 'loading');
-                    return getProxiedStreamUrl(streamData.playback_url)
-                        .then(function(proxiedStreamUrl) {
-                            playStream(proxiedStreamUrl);
-                            updateChannelInfo(streamData.channel_info);
-                            startViewersUpdate(channelName);
+
+                    try {
+                        player = videojs("videoPlayer", {
+                            controls: true,
+                            autoplay: true,  // AUTOPLAY HABILITADO
+                            preload: "auto",
+                            playsinline: true,
+                            fluid: true
                         });
-                })
-                .catch(function(error) {
-                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error: ' + error.message, 'error');
-                    console.error('Error:', error);
+
+                        // Agregar botones de salto
+                        player.ready(function() {
+                            createSkipButtons(player);
+                            
+                            // Configurar eventos para obtener duración
+                            player.on('loadedmetadata', function() {
+                                onVideoReady(episode);
+                            });
+                            
+                            player.on('error', function() {
+                                videoTitle.textContent = `Error: ${episode.title} no disponible`;
+                                videoDuration.textContent = 'Error al cargar';
+                            });
+                        });
+
+                    } catch (e) {
+                        console.error("Error iniciando Video.js:", e);
+                        container.innerHTML = `<div style="color:white;padding:18px;text-align:center;">No se pudo inicializar el reproductor.</div>`;
+                    }
                 });
-        }
-                                                                             
-        function getProxiedStreamUrl(streamUrl) {
-            var proxyUrls = [
-                'https://procsyurlstrm.j4m1r-98.workers.dev/?url=' + encodeURIComponent(streamUrl),
-                'https://corsproxy.io/?' + encodeURIComponent(streamUrl),
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(streamUrl),
-                'https://cors-anywhere.herokuapp.com/' + streamUrl
-            ];
+            }
             
-            function tryProxy(index) {
-                if (index >= proxyUrls.length) {
-                    return Promise.reject(new Error('No se pudo encontrar un proxy funcionando'));
+            updateNavigation();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Cuando el video está listo
+        function onVideoReady(episode) {
+            const videoTitle = document.getElementById('videoTitle');
+            const durationEl = document.getElementById('videoDuration');
+
+            videoTitle.textContent = episode.title;
+
+            if (player) {
+                const duration = player.duration();
+                if (isFinite(duration)) {
+                    const mins = Math.floor(duration / 60);
+                    const secs = Math.floor(duration % 60);
+                    durationEl.textContent = 'Duración: ' + mins + ':' + (secs < 10 ? '0' : '') + secs;
+                } else {
+                    durationEl.textContent = 'Reproduciendo...';
                 }
-                
-                var proxyUrl = proxyUrls[index];
-                console.log('Probando proxy:', proxyUrl);
-                
-                return testProxyUrl(proxyUrl)
-                    .then(function() {
-                        console.log('Proxy funcionando:', proxyUrl);
-                        return proxyUrl;
-                    })
-                    .catch(function(error) {
-                        console.log('Proxy falló:', proxyUrl, error);
-                        return tryProxy(index + 1);
-                    });
             }
-            
-            return tryProxy(0);
         }
 
-        function testProxyUrl(proxyUrl) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('HEAD', proxyUrl, true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) resolve(true);
-                    else reject(new Error('HTTP error: ' + xhr.status));
-                };
-                xhr.onerror = function() { reject(new Error('Network error')); };
-                xhr.send();
-            });
-        }
-
-        function playStream(url) {
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
+        // Actualizar navegación (botones anterior/siguiente)
+        function updateNavigation() {
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
             
-            video.style.display = 'block';
-            offlinePlaceholder.style.display = 'none';
-            
-            if (hls) hls.destroy();
-            
-            console.log('Reproduciendo a través de proxy:', url);
-            
-            video.src = '';
-            video.load();
-            
-            if (window.Hls && Hls.isSupported()) {
-                hls = new Hls({ enableWorker: false, lowLatencyMode: true, backBufferLength: 90 });
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('Manifiesto HLS cargado correctamente (proxy)');
-                    updateQualityDropdown();
-                    updateOverlayQualityDropdown();
-                    
-                    // Mostrar controles cuando el video se carga
-                    setTimeout(function() {
-                        showVideoControls();
-                    }, 500);
-                    
-                    video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado (proxy):', e);
-                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
-                    });
-                });
-                                               
-                hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('Error HLS (proxy):', data);
-                    if (data.fatal) {
-                        switch(data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                updateStatus('<i class="fas fa-redo"></i> Error de red, reconectando...', 'error');
-                                setTimeout(function() { if (hls) hls.startLoad(); }, 2000);
-                                break;
-                            default:
-                                updateStatus('<i class="fas fa-exclamation-circle"></i> Error del stream, recargando...', 'error');
-                                setTimeout(loadStream, 3000);
-                                break;
-                        }
-                    }
-                });
-                
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                console.log('Usando HLS nativo (proxy)');
-                video.src = url;
-                video.addEventListener('loadedmetadata', function() {
-                    console.log('Metadata cargada (proxy)');
-                    video.play().catch(function(e) {
-                        console.log('Auto-play bloqueado (proxy):', e);
-                        updateStatus('<i class="fas fa-pause"></i> Click en play para iniciar', 'loading');
-                    });
-                });
-            } else {
-                updateStatus('<i class="fas fa-exclamation-circle"></i> HLS no soportado en este navegador', 'error');
+            if (currentEpisodeIndex === null) {
+                prevButton.disabled = true;
+                nextButton.disabled = true;
                 return;
             }
             
-            video.addEventListener('waiting', function() {
-                updateStatus('<i class="fas fa-hourglass-half"></i> Buffering...', 'loading');
-            });
-            
-            video.addEventListener('playing', function() {
-                updateStatus('<i class="fas fa-play"></i> Reproduciendo', 'success');
-            });   
-        }
-
-        function showOfflinePlaceholder(channelInfo) {
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            
-            video.pause();
-            video.src = '';
-            video.load();
-            video.style.display = 'none';
-            offlinePlaceholder.style.display = 'flex';
-            clearInterval(viewersUpdateInterval);
-            
-            return getLastLiveText(channelInfo.name)
-                .then(function(lastLiveText) {
-                    updateOfflineChannelInfo(channelInfo, lastLiveText);
-                    offlinePlaceholder.innerHTML = 
-                        '<i class="fas fa-user-slash offline-icon"></i>' +
-                        '<div class="offline-channel-name">' + (channelInfo.name || 'Canal') + '</div>' +
-                        '<div class="offline-status">Está offline en este momento</div>' +
-                        '<div class="offline-last-time">Última vez: ' + lastLiveText + '</div>' +
-                        '<button class="offline-btn" onclick="window.open(\'https://kick.com/' + channelInfo.name + '\', \'_blank\')">' +
-                            '<i class="fas fa-external-link-alt"></i> Visitar canal' +
-                        '</button>';
-                });
-        }
-
-        function refreshStream() { console.log('Actualización manual del stream'); loadStream(); }
-
-        function autoRefreshToggle() {
-            var btn = document.getElementById('autoRefreshBtn');
-            if (isAutoRefresh) {
-                clearInterval(autoRefreshInterval);
-                isAutoRefresh = false;
-                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: OFF';
-                updateStatus('Auto-refresh desactivado', 'success');
+            // Botón anterior
+            if (currentEpisodeIndex > 0) {
+                prevButton.disabled = false;
+                prevButton.onclick = function() { playEpisode(currentEpisodeIndex - 1); };
             } else {
-                autoRefreshInterval = setInterval(refreshStream, 20000);
-                isAutoRefresh = true;
-                btn.innerHTML = '<i class="fas fa-clock"></i> Auto-Refresh: ON';
-                updateStatus('Auto-refresh activado (cada 20s)', 'success');
+                prevButton.disabled = true;
+                prevButton.onclick = null;
             }
-        }
-
-        function updateStatus(message, type) {
-            var status = document.getElementById('status');
-            status.innerHTML = message;
-            status.className = 'status ' + type;
-        }
-
-        function updateChannelInfo(info) {
-            var container = document.getElementById('channelInfo');
-            container.style.display = 'block';
-            if (info && info.name) {
-                var profilePic = info.profile_pic ? 
-                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
-                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
-                
-                container.innerHTML = 
-                    '<div class="channel-main-info">' +
-                        '<div class="channel-profile-container">' +
-                            profilePic +
-                            '<div class="channel-text-info">' +
-                                '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
-                                    '<div class="channel-viewers">' +
-                                        '<i class="fas fa-users"></i>' +
-                                        '<span class="viewers-count">' + (info.viewer_count || 0) + '</span>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="channel-title">' + (info.title || 'Sin título') + '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
+            
+            // Botón siguiente
+            if (currentEpisodeIndex < EPISODES.length - 1) {
+                nextButton.disabled = false;
+                nextButton.onclick = function() { playEpisode(currentEpisodeIndex + 1); };
             } else {
-                container.innerHTML = '<p>Información del canal no disponible</p>';
+                nextButton.disabled = true;
+                nextButton.onclick = null;
             }
         }
 
-        function updateOfflineChannelInfo(info, lastLiveText) {
-            var container = document.getElementById('channelInfo');
-            container.style.display = 'block';
-            if (info && info.name) {
-                var profilePic = info.profile_pic ? 
-                    '<img src="' + info.profile_pic + '" class="channel-profile-pic" alt="' + info.name + '">' :
-                    '<div class="profile-placeholder"><i class="fas fa-user"></i></div>';
-                
-                container.innerHTML = 
-                    '<div class="channel-main-info">' +
-                        '<div class="channel-profile-container">' +
-                            profilePic +
-                            '<div class="channel-text-info">' +
-                                '<div class="channel-name-line">' +
-                                    '<div class="channel-name">' + info.name + getVerifiedBadge(info.verified) + '</div>' +
-                                '</div>' +
-                                '<div class="offline-time">Última vez en vivo ' + lastLiveText + '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-            } else {
-                container.innerHTML = '<p>Información del canal no disponible</p>';
-            }
-        }
-
-        function updateViewersCount(channelName) {
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (streamData && streamData.channel_info) {
-                        var viewersCount = streamData.channel_info.viewer_count || 0;
-                        var viewersElement = document.querySelector('.viewers-count');
-                        if (viewersElement) viewersElement.textContent = viewersCount;
-                        
-                        if (!streamData.channel_info.is_live) {
-                            clearInterval(viewersUpdateInterval);
-                            updateStatus('<i class="fas fa-eye-slash"></i> El canal está ahora offline', 'error');
-                            var video = document.getElementById('videoPlayer');
-                            video.pause();
-                            video.src = '';
-                            video.load();
-                            return showOfflinePlaceholder(streamData.channel_info);
-                        }
-                    }
-                })
-                .catch(function(error) { console.error('Error actualizando viewers count:', error); });
-        }
-
-        function startViewersUpdate(channelName) {
-            clearInterval(viewersUpdateInterval);
-            viewersUpdateInterval = setInterval(function() { updateViewersCount(channelName); }, 60000);
-            console.log('Iniciando actualización automática de viewers cada minuto');
-        }
-
-        function addToList() {
-            var channelName = document.getElementById('channelInput').value.trim();
-            if (!channelName) {
-                updateStatus('<i class="fas fa-exclamation-triangle"></i> Ingresa un nombre de canal', 'error');
-                return;
-            }
-            
-            var alreadyExists = savedChannels.some(function(channel) { return channel.name === channelName; });
-            if (alreadyExists) {
-                updateStatus('<i class="fas fa-info-circle"></i> Este canal ya está en tu lista', 'loading');
-                return;
-            }
-            
-            updateStatus('<i class="fas fa-search"></i> Obteniendo información del canal...', 'loading');
-            
-            getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData || !streamData.channel_info) throw new Error('No se pudo obtener información del canal');
-                    
-                    var channelInfo = streamData.channel_info;
-                    var newChannel = {
-                        name: channelName,
-                        profile_pic: channelInfo.profile_pic || '',
-                        displayName: channelInfo.name || channelName,
-                        verified: channelInfo.verified || false
-                    };
-                    
-                    savedChannels.push(newChannel);
-                    localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
-                    updateChannelsStatus();
-                    updateStatus('<i class="fas fa-check"></i> Canal agregado a la lista', 'success');
-                })
-                .catch(function(error) {
-                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al agregar canal: ' + error.message, 'error');
-                    console.error('Error:', error);
-                });
-        }
-
-        function loadChannel(channelName) {
-            setChannelInput(channelName, true);
-            loadStream();
-            scrollToVideoContainer();
-        }
-
-        function removeChannel(channelName) {
-            savedChannels = savedChannels.filter(function(channel) { return channel.name !== channelName; });
-            localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
-            updateChannelsStatus();
-            updateStatus('<i class="fas fa-trash-alt"></i> Canal eliminado de la lista', 'success');
-        }
-
-        function getChannelStatus(channelName) {
-            return getStreamFromKickAPI(channelName)
-                .then(function(streamData) {
-                    if (!streamData || !streamData.channel_info) throw new Error('No se pudo obtener información del canal');
-                    return {
-                        is_live: streamData.channel_info.is_live,
-                        viewer_count: streamData.channel_info.viewer_count || 0,
-                        verified: streamData.channel_info.verified || false
-                    };
-                })
-                .catch(function(error) {
-                    console.error('Error obteniendo estado del canal:', error);
-                    return { is_live: false, viewer_count: 0, verified: false };
-                });
-        }
-
-        function renderChannelsList() {
-            var tabsContainer = document.getElementById('tabsContainer');
-            if (savedChannels.length === 0) {
-                tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-inbox"></i> No hay canales guardados</div>';
-                return;
-            }
-            tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Cargando estados...</div>';
-            updateChannelsStatus();
-        }
-
-        function updateChannelsStatus() {
-            var tabsContainer = document.getElementById('tabsContainer');
-            var refreshBtn = document.querySelector('.refresh-btn');
-            tabsContainer.innerHTML = '<div class="empty-list"><i class="fas fa-spinner fa-spin"></i> Actualizando estados...</div>';
-            
-            if (refreshBtn) {
-                refreshBtn.disabled = true;
-                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Actualizando...</span>';
-            }
-            
-            var promises = [];
-            for (var i = 0; i < savedChannels.length; i++) {
-                (function(channel) {
-                    promises.push(getChannelStatus(channel.name).then(function(status) { return { channel: channel, status: status }; }));
-                })(savedChannels[i]);
-            }
-            
-            Promise.all(promises)
-                .then(function(results) {
-                    results.sort(function(a, b) {
-    // Primero: Canales en vivo vs offline
-    if (a.status.is_live && !b.status.is_live) return -1;
-    if (!a.status.is_live && b.status.is_live) return 1;
-    
-    // Segundo: Si ambos están en vivo, ordenar por viewers (mayor a menor)
-    if (a.status.is_live && b.status.is_live) {
-        return b.status.viewer_count - a.status.viewer_count;
-    }
-    
-    // Tercero: Si ambos están offline, ordenar alfabéticamente
-    return a.channel.displayName.localeCompare(b.channel.displayName);
-});
-                    
-                    tabsContainer.innerHTML = '';
-                    for (var i = 0; i < results.length; i++) {
-                        var channel = results[i].channel;
-                        var status = results[i].status;
-                        var channelTabHTML = 
-                            '<div class="channel-tab-wrapper">' +
-                                '<div class="channel-tab" onclick="loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();">' +
-                                    (channel.profile_pic ? '<img src="' + channel.profile_pic + '" alt="' + channel.displayName + '" class="channel-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' : '') +
-                                    '<div class="channel-img-placeholder" style="' + (channel.profile_pic ? 'display: none;' : 'display: flex;') + '">' + '<i class="fas fa-user"></i></div>' +
-                                    '<div class="channel-name-tab">' + channel.displayName + '</div>' +
-                                    '<div class="channel-status ' + (status.is_live ? 'online' : 'offline') + '">' + (status.is_live ? '<i class="fas fa-users"></i> ' + status.viewer_count : '<i class="fas fa-circle"></i> Offline') + '</div>' +
-                                    '<button class="view-btn ' + (status.is_live ? '' : 'offline') + '" onclick="event.stopPropagation(); ' + (status.is_live ? 'loadChannel(\'' + channel.name + '\'); scrollToVideoContainer();' : 'window.open(\'https://kick.com/' + channel.name + '\', \'_blank\')') + '">' + (status.is_live ? '<i class="fas fa-play"></i> Ver' : '<i class="fas fa-eye"></i> Ver canal') + '</button>' +
-                                '</div>' +
-                                '<button class="delete-btn" onclick="event.stopPropagation(); removeChannel(\'' + channel.name + '\')">' + '<i class="fas fa-times"></i></button>' +
-                            '</div>';
-                        tabsContainer.innerHTML += channelTabHTML;
-                    }
-                    
-                    if (refreshBtn) {
-                        refreshBtn.disabled = false;
-                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> <span>Actualizar</span>';
-                    }
-                    updateStatus('<i class="fas fa-check"></i> Estados de canales actualizados', 'success');
-                })
-                .catch(function(error) {
-                    console.error('Error actualizando estados de canales:', error);
-                    if (refreshBtn) {
-                        refreshBtn.disabled = false;
-                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-                    }
-                    updateStatus('<i class="fas fa-exclamation-circle"></i> Error al actualizar estados', 'error');
-                });
-        }
-
-        function showInitialPlaceholder() {
-            var video = document.getElementById('videoPlayer');
-            var offlinePlaceholder = document.getElementById('offlinePlaceholder');
-            video.style.display = 'none';
-            offlinePlaceholder.style.display = 'flex';
-            video.pause();
-            video.src = '';
-            video.load();
-            if (hls) { hls.destroy(); hls = null; }
-            clearInterval(viewersUpdateInterval);
-            document.getElementById('channelInfo').innerHTML = '';
-            offlinePlaceholder.innerHTML = 
-                '<i class="fas fa-play-circle offline-icon"></i>' +
-                '<div class="offline-channel-name">Stream Player</div>' +
-                '<div class="offline-status">Selecciona un canal para comenzar</div>' +
-                '<div class="offline-last-time">Usa el campo de arriba para buscar un canal de Kick</div>' +
-                '<button class="offline-btn" onclick="document.getElementById(\'channelInput\').focus()">' + '<i class="fas fa-search"></i> Buscar canal</button>';
-        }
-
-        // Cargar al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Iniciando aplicación...');
-            showInitialPlaceholder();
-            renderChannelsList();
-            setupNormalChatEvents();
-            
-            setupChannelInputBehavior();
-            
-            // Configurar eventos de botones overlay
-            setupOverlayQualityButtons();
-            setupVideoControlsEvents();
-            
-            // Ocultar controles al inicio
-            hideVideoControls();
-            
-            document.getElementById('qualityBtn').addEventListener('click', toggleQualityDropdown);
-            document.addEventListener('click', function(event) {
-                var qualityBtn = document.getElementById('qualityBtn');
-                var qualityDropdown = document.getElementById('qualityDropdown');
-                if (qualityBtn && qualityDropdown && !qualityBtn.contains(event.target) && !qualityDropdown.contains(event.target)) {
-                    qualityDropdown.classList.remove('show');
+        // 🔹 Compatible con Tizen: sin operador ?.
+        function createSkipButtons(player) {
+            // Botón retroceder 10s
+            var skipBackBtn = player.controlBar.addChild('button', {
+                clickHandler: function() {
+                    var ct = player.currentTime();
+                    player.currentTime(Math.max(0, ct - 10));
                 }
-            });            
-            document.getElementById('channelInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') loadStream();
             });
-        });
+            skipBackBtn.el().innerHTML = '<span class="material-icons">replay_10</span>';
+            skipBackBtn.el().className += ' vjs-skip-back vjs-control vjs-button';
+            skipBackBtn.controlText('Retroceder 10 segundos');
+
+            // Botón adelantar 10s
+            var skipForwardBtn = player.controlBar.addChild('button', {
+                clickHandler: function() {
+                    var ct = player.currentTime();
+                    var duration = player.duration();
+                    if (isFinite(duration)) {
+                        player.currentTime(Math.min(duration, ct + 10));
+                    } else {
+                        player.currentTime(ct + 10);
+                    }
+                }
+            });
+            skipForwardBtn.el().innerHTML = '<span class="material-icons">forward_10</span>';
+            skipForwardBtn.el().className += ' vjs-skip-forward vjs-control vjs-button';
+            skipForwardBtn.controlText('Adelantar 10 segundos');
+
+            // 🔹 Búsqueda segura del panel de volumen (sin ?.)
+            var volumePanel = null;
+            if (player.controlBar.volumePanel && typeof player.controlBar.volumePanel.el === 'function') {
+                volumePanel = player.controlBar.volumePanel.el();
+            } else if (player.controlBar.volumeButton && typeof player.controlBar.volumeButton.el === 'function') {
+                volumePanel = player.controlBar.volumeButton.el();
+            }
+
+            if (volumePanel && volumePanel.parentNode) {
+                volumePanel.parentNode.insertBefore(skipBackBtn.el(), volumePanel);
+                volumePanel.parentNode.insertBefore(skipForwardBtn.el(), volumePanel);
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initApp, 150);
+            });
+        } else {
+            setTimeout(initApp, 150);
+        }
     </script>
 </body>
 </html>
